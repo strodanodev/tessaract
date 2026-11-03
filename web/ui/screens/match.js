@@ -5,6 +5,7 @@
 import { decode, Op, ENEMY_CHAMPION, enemyUnit, ownUnit, endTurn, describeEffect, PuzzleSession } from "../../engine/tessaract.js";
 import { h, icon, stagger, toast } from "../dom.js";
 import { createResult } from "../result.js";
+import { runeRing } from "../runes.js";
 
 export function matchScreen(app) {
   const { game, rules } = app;
@@ -21,7 +22,7 @@ export function matchScreen(app) {
     const power = h("div", { class: "pl-power" });
     const relics = h("div", { class: "pl-relics" });
     const floats = h("div", { class: "pl-floats", aria: { hidden: "true" } });
-    const el = h("div", { class: `plate ${side}` }, h("div", { class: "pl-hero" }, portrait, life, floats), h("div", { class: "pl-id" }, name, sub, energy), power, relics);
+    const el = h("div", { class: `plate ${side}` }, h("i", { class: "pl-orn", aria: { hidden: "true" } }), h("div", { class: "pl-hero" }, portrait, life, floats), h("div", { class: "pl-id" }, name, sub, energy), power, relics);
     return { el, portrait, life, name, sub, energy, power, relics, floats };
   };
   const foeP = plate("top"), meP = plate("bottom");
@@ -32,7 +33,7 @@ export function matchScreen(app) {
   const hand = h("div", { class: "hand", aria: { label: "Your hand" } });
   const endBtn = h("button", { class: "end-turn", type: "button", on: { click: () => act(endTurn()) } }, h("span", { class: "et-ring" }), h("span", { class: "et-label display", text: "End turn" }));
   const menuBtn = h("button", { class: "icon-btn", type: "button", title: "Battle menu (Esc)", aria: { label: "Battle menu" }, on: { click: () => openMenu() } }, icon("menu"));
-  const dock = h("div", { class: "dock" }, menuBtn, endBtn);
+  const dock = h("div", { class: "dock" }, h("i", { class: "et-gear", aria: { hidden: "true" } }), menuBtn, endBtn);
   // On a phone, End turn sits in your plate and the menu in the enemy's, clear of the board.
   const phone = matchMedia("(max-width: 760px)");
   const placeControls = () => {
@@ -72,7 +73,21 @@ export function matchScreen(app) {
       vbtn("close", "Exit", () => void app.flows.exitView())));
 
   const mat = h("div", { class: "table-mat", aria: { hidden: "true" } }, h("i", { class: "tm-ring" }), h("i", { class: "tm-seat foe" }), h("i", { class: "tm-seat you" }));
+  // the lanes' extent in the mat's coordinates: layout offsets (untouched by the board's 3D tilt), summed up to the
+  // board, since a lane with preserve-3d is its own children's offset parent
+  const offsetIn = (node, root) => {
+    let x = 0, y = 0;
+    for (let n = node; n && n !== root; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+    return { x, y };
+  };
+  const laneRect = (lane) => {
+    const kids = lane.children;
+    if (!kids.length) return null;
+    const a = offsetIn(kids[0], board), b = offsetIn(kids[kids.length - 1], board);
+    return { x: a.x - mat.offsetLeft, y: a.y - mat.offsetTop, w: b.x + kids[kids.length - 1].offsetWidth - a.x, h: kids[0].offsetHeight };
+  };
   const board = h("div", { class: "battlefield" }, mat, foeLane, h("div", { class: "lane-line" }), myLane);
+  const ring = runeRing(mat, () => [laneRect(foeLane), laneRect(myLane)]);
   const el = h("section", { class: "match", aria: { label: "Battle" } },
     fx, foeP.el, h("div", { class: "hud-center" }, medallion, status), board, meP.el, hand, dock, feed, cine, viewbar, result.el);
 
@@ -348,6 +363,7 @@ export function matchScreen(app) {
     }));
     hand.style.setProperty("--n", String(n));
     el.classList.toggle("aiming", !!pick);
+    requestAnimationFrame(ring.refresh);   // the rune circle keeps clear of the lanes as they lay out
 
     endBtn.disabled = !myTurn;
     endBtn.classList.toggle("ready", myTurn && !moves.some((m) => m.op !== Op.End));

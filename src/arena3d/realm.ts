@@ -26,13 +26,13 @@ interface Preset {
 
 const PRESETS: Record<RealmId, Preset> = {
   valhalla: {
-    sky: { top: 0x070b1a, bottom: 0x1a2240, glow: 0x3d5a8a, fog: 0x0a0f1e, fogDensity: 0.02 },
+    sky: { top: 0x060d16, bottom: 0x14283a, glow: 0x2f6f84, fog: 0x07131a, fogDensity: 0.022 },
     aurora: 1, stars: 0.9,
     key: { color: 0xfff3e0, intensity: 2.4, position: [6, 12, 5] },
-    rim: { color: 0x9fd0ff, intensity: 55 },
-    hemi: { sky: 0x4a5a8a, ground: 0x1a1410, intensity: 0.6 },
+    rim: { color: 0x7fe6ff, intensity: 60 },
+    hemi: { sky: 0x3a6878, ground: 0x14120e, intensity: 0.6 },
     envIntensity: 0.6, floorRadius: 9.05,
-    motes: { color: 0xcfe0ff, rise: 0.12, size: 1, opacity: 0.5 },
+    motes: { color: 0xbff6ff, rise: 0.12, size: 1, opacity: 0.55 },
   },
   underworld: {
     sky: { top: 0x050102, bottom: 0x2a0806, glow: 0x7a1a08, fog: 0x120404, fogDensity: 0.024 },
