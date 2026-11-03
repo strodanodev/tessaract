@@ -109,7 +109,25 @@ const EMBLEMS = {
   // a faceted gem
   relic: (id) => `<path d="M56 32h28l10 11-24 26-24-26z" fill="url(#sg-core${id})"/>
     <path d="M56 32l5 11h18l5-11M46 43h48M61 43l9 26 9-26" fill="none" stroke="#fff" stroke-width=".8" opacity=".75"/>`,
-  // a helm for tokens
+  // single-target damage: a lightning bolt
+  bolt: (id) => `<path d="M76 20L60 47H70L63 70L82 40H72L80 20Z" fill="url(#sg-core${id})"/><path d="M76 20L60 47H70" fill="none" stroke="#fff" stroke-width=".9" opacity=".7"/>`,
+  // damage to every unit: a broken shockwave round a hot core
+  quake: (id) => {
+    let cracks = "";
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2 + 0.2; cracks += `M${f(CX + Math.cos(a) * 9)} ${f(CY + Math.sin(a) * 9)}L${f(CX + Math.cos(a) * 13)} ${f(CY + Math.sin(a) * 13)}`; }
+    return `<circle cx="${CX}" cy="${CY}" r="8" fill="url(#sg-core${id})"/><circle cx="${CX}" cy="${CY}" r="15.5" fill="none" stroke="url(#sg-core${id})" stroke-width="3" stroke-dasharray="7 4"/>`
+      + `<circle cx="${CX}" cy="${CY}" r="23" fill="none" stroke="url(#sg-core${id})" stroke-width="2" stroke-dasharray="3 6" opacity=".8"/><path d="${cracks}" stroke="#fff" stroke-width="1.2" opacity=".75"/>`;
+  },
+  // a buff: three rising chevrons
+  buff: (id) => [22, 34, 46].map((y, i) => `<path d="M54 ${y + 14}L70 ${y}L86 ${y + 14}L86 ${y + 21}L70 ${y + 7}L54 ${y + 21}Z" fill="url(#sg-core${id})" opacity="${[0.55, 0.8, 1][i]}"/>`).join(""),
+  // energy: a faceted crystal
+  energy: (id) => `<path d="M70 18L83 33L79 60L70 70L61 60L57 33Z" fill="url(#sg-core${id})"/><path d="M70 18V70M57 33H83M61 60H79" fill="none" stroke="#fff" stroke-width=".8" opacity=".6"/>`,
+  // a shield: a heater shield with a boss
+  shield: (id) => `<path d="M70 19C77 23 85 24 89 24V42C89 56 81 64 70 70C59 64 51 56 51 42V24C55 24 63 23 70 19Z" fill="url(#sg-core${id})"/>`
+    + `<path d="M70 24V66M55 42H85" stroke="#120d18" stroke-width="1.4" opacity=".45"/><circle cx="70" cy="42" r="5" fill="#fff" opacity=".85"/>`,
+  // drawing cards: a fan of three
+  draw: (id) => [-18, 0, 18].map((a) => `<rect x="61" y="24" width="18" height="27" rx="2.5" transform="rotate(${a} 70 66)" fill="url(#sg-core${id})" stroke="#120d18" stroke-width="1" stroke-opacity=".6"/>`).join(""),
+  // a helm for tokens (and summons)
   unit: (id) => `<path d="M70 22c-12 0-19 9-19 20v12l6 8h26l6-8V42c0-11-7-20-19-20z" fill="url(#sg-core${id})"/>
     <path d="M55 41h30v5H55z" fill="#120d18"/><path d="M70 22v15" stroke="#fff" stroke-width="1.4" opacity=".7"/>
     <path d="M63 51v7M70 51v8M77 51v7" stroke="#120d18" stroke-width="1.8" stroke-linecap="round"/>`,
@@ -125,7 +143,12 @@ function embers(r) {
 export function sigil(def) {
   const r = rng(`${def.name}|${def.element}|${def.type}`);
   const motif = MOTIFS[def.element] ?? MOTIFS.neutral;
-  const emblem = EMBLEMS[def.type] ?? EMBLEMS.spell;
+  // the emblem says what the card does; a relic carries its emblem in a hexagonal socket
+  const op = def.effect?.op, target = String(def.effect?.target ?? "");
+  const key = def.type === "unit" || op === "summon" ? "unit" : op === "damage" ? (target.startsWith("all") ? "quake" : "bolt")
+    : ["buff", "energy", "shield", "draw"].includes(op) ? op : def.type === "relic" ? "relic" : "spell";
+  const emblem = EMBLEMS[key];
+  const socket = def.type === "relic" ? `<path d="${Array.from({ length: 6 }, (_, i) => `${i ? "L" : "M"}${f(CX + Math.cos((i / 6) * Math.PI * 2 + Math.PI / 6) * 30)} ${f(CY + Math.sin((i / 6) * Math.PI * 2 + Math.PI / 6) * 30)}`).join("")}Z" fill="rgba(10,8,14,.35)" stroke="#fff" stroke-opacity=".4" stroke-width="1.2"/>` : "";
   const id = ++uid;
   const svg = `<svg class="sigil" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <defs>
@@ -133,7 +156,7 @@ export function sigil(def) {
       <linearGradient id="sg-up${id}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="currentColor"/><stop offset=".7" stop-color="currentColor" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity=".9"/></linearGradient>
       <radialGradient id="sg-core${id}" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity=".55"/></radialGradient>
     </defs>
-    ${rays(r, id)}${motif(r, id)}${runeRing(r)}${embers(r)}<g class="sg-emblem">${emblem(id)}</g></svg>`;
+    ${rays(r, id)}${motif(r, id)}${runeRing(r)}${embers(r)}${socket}<g class="sg-emblem">${emblem(id)}</g></svg>`;
   const holder = document.createElement("span");
   holder.innerHTML = svg;
   return holder.firstElementChild;

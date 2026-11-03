@@ -89,10 +89,12 @@
 .battlefield { --tilt: 26deg; --ring: clamp(0px, calc(14cqh - 20px), 40px); --u-max: clamp(72px, 18vh, 160px); container-type: size; transform: perspective(1500px) rotateX(var(--tilt)); transform-origin: 50% 62%; transform-style: preserve-3d; width: min(980px, 100%); display: grid; grid-template-rows: 1fr auto 1fr; align-items: center; gap: 4px; min-height: 0; padding: 4px 0; }
 /* the table: a gilt-rimmed mat on the board's plane (it tilts with the board), with a seat at each end */
 .table-mat { position: absolute; inset: 0 -3%; pointer-events: none; border-radius: 9999px; transform: translateZ(-2px);
-  background: radial-gradient(ellipse at 50% 50%, rgba(26, 46, 52, 0.84) 0%, rgba(11, 18, 22, 0.9) 58%, rgba(7, 10, 13, 0.94) 100%);
+  /* carved stone: grain over the teal slab, an engraved groove inside the rim */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55  0 0 0 0 .55  0 0 0 0 .55  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), radial-gradient(ellipse at 50% 50%, rgba(26, 46, 52, 0.86) 0%, rgba(11, 18, 22, 0.92) 58%, rgba(7, 10, 13, 0.95) 100%);
   border: 1px solid rgba(160, 215, 225, 0.4);
-  box-shadow: 0 0 0 6px rgba(10, 8, 14, 0.78), 0 0 0 7px rgba(255, 201, 94, 0.3), 0 34px 70px rgba(0, 0, 0, 0.65), inset 0 0 70px rgba(0, 0, 0, 0.7), inset 0 0 0 12px rgba(255, 201, 94, 0.035); }
-.tm-ring { position: absolute; left: 50%; top: 50%; width: min(34%, 260px); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; border: 1px solid rgba(255, 201, 94, 0.2); box-shadow: 0 0 0 16px rgba(255, 201, 94, 0.025), inset 0 0 0 12px rgba(255, 201, 94, 0.03), 0 0 40px rgba(255, 201, 94, 0.08); }
+  box-shadow: 0 0 0 6px rgba(10, 8, 14, 0.78), 0 0 0 7px rgba(255, 201, 94, 0.3), 0 34px 70px rgba(0, 0, 0, 0.65), 0 10px 0 -2px rgba(4, 7, 9, 0.9), inset 0 0 70px rgba(0, 0, 0, 0.7), inset 0 2px 0 rgba(200, 235, 240, 0.08); }
+.tm-ring { position: absolute; left: 50%; top: 50%; width: min(34%, 260px); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; border: 1px solid rgba(160, 215, 225, 0.22);
+  background: repeating-conic-gradient(from 0deg, rgba(160, 215, 225, 0.08) 0deg 1deg, transparent 1deg 45deg), radial-gradient(circle, rgba(90, 215, 235, 0.08), transparent 62%); box-shadow: 0 0 0 16px rgba(255, 201, 94, 0.025), inset 0 0 0 12px rgba(255, 201, 94, 0.03), 0 0 40px rgba(255, 201, 94, 0.08); }
 .tm-seat { position: absolute; left: 50%; width: 22%; height: 6px; transform: translateX(-50%); border-radius: 50%; }
 .tm-seat.foe { top: -3px; background: radial-gradient(ellipse, color-mix(in srgb, var(--foe) 80%, transparent), transparent 70%); }
 .tm-seat.you { bottom: -3px; background: radial-gradient(ellipse, color-mix(in srgb, var(--you) 80%, transparent), transparent 70%); }

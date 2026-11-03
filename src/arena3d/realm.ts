@@ -123,7 +123,7 @@ export class Realm {
   private async dressRealm(id: RealmId): Promise<void> {
     this.dressing.clear();
     const p = PRESETS[id];
-    const stone = (color: number): THREE.MeshStandardMaterial => weather(new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.04, envMapIntensity: 0.3 }), 1.7, 0.5, 0.35);
+    const stone = (color: number): THREE.MeshStandardMaterial => weather(new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.04, envMapIntensity: 0.3 }), 1.7, 0.5, 0.35, 0.8);
     if (p.floorRadius > 0) this.dressing.add(daisRim(p.floorRadius, stone(id === 'valhalla' ? 0x56565a : 0x3a3034)));
     const found = this.stage.coarse ? null : await this.loadStatues();
     const ring = found?.manifest.realms?.[id];
@@ -197,14 +197,14 @@ export class Realm {
     }
     if (/crystal/.test(n)) { const m = src.clone(); m.emissiveIntensity = 3.2; return m; }
     // the untextured surfaces get weathering (see weather()), or they read as flat greybox next to the photo stone
-    if (/banner/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x14284a, roughness: 0.85, metalness: 0, side: THREE.DoubleSide }), 5, 0.35, 0.2);
-    if (/gold/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.32, metalness: 1, envMapIntensity: 1.2 }), 3, 0.3, 0.35);
-    if (/obsidian/.test(n)) return weather(new THREE.MeshPhysicalMaterial({ color: 0x0c080e, roughness: 0.28, metalness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.3, envMapIntensity: 1.0 }), 1.4, 0.55, 0.3);
-    if (/statue|chrome|accent/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x7c8687 : 0x5e4c48, roughness: 0.82, metalness: 0.05, envMapIntensity: 0.4 }), 2.6, 0.45, 0.45);
-    if (/bone/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x80735c, roughness: 0.82, metalness: 0 }), 2.2, 0.55, 0.55);
-    if (/basalt/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x15111a, roughness: 0.9, metalness: 0.08 }), 1.6, 0.5, 0.3);
+    if (/banner/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x14284a, roughness: 0.85, metalness: 0, side: THREE.DoubleSide }), 5, 0.35, 0.2, 0.25);
+    if (/gold/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.32, metalness: 1, envMapIntensity: 1.2 }), 3, 0.3, 0.35, 0.3);
+    if (/obsidian/.test(n)) return weather(new THREE.MeshPhysicalMaterial({ color: 0x0c080e, roughness: 0.28, metalness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.3, envMapIntensity: 1.0 }), 1.4, 0.55, 0.3, 0.5);
+    if (/statue|chrome|accent/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x7c8687 : 0x5e4c48, roughness: 0.82, metalness: 0.05, envMapIntensity: 0.4 }), 2.6, 0.45, 0.45, 0.55);
+    if (/bone/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x80735c, roughness: 0.82, metalness: 0 }), 2.2, 0.55, 0.55, 0.6);
+    if (/basalt/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x15111a, roughness: 0.9, metalness: 0.08 }), 1.6, 0.5, 0.3, 0.9);
     if (/dark/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x1a1613, roughness: 0.7, metalness: 0.15 }), 2, 0.45, 0.3);
-    return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x4a443c : 0x2a2226, roughness: 0.92, metalness: 0.05, envMapIntensity: 0.35 }), 1.8, 0.5, 0.45);
+    return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x4a443c : 0x2a2226, roughness: 0.92, metalness: 0.05, envMapIntensity: 0.35 }), 1.8, 0.5, 0.45, 0.9);
   }
 
   private update(_dt: number, t: number): void {
@@ -236,19 +236,21 @@ function daisRim(r: number, mat: THREE.Material): THREE.Group {
  * Weathering for the untextured Blender materials (bone, obsidian, gold, painted stone): world-space value noise varies
  * the colour and roughness, and grime gathers toward the ground. It needs no textures or UVs and costs a few ALU ops a
  * pixel, standing in for the ambient occlusion and texture detail of Rapture Chess's heavier stage.
- *   scale: noise frequency per metre · amount: colour variation (0-1) · grime: darkening at floor level (0-1)
+ *   scale: noise frequency per metre · amount: colour variation (0-1) · grime: darkening at floor level (0-1) ·
+ *   bump: how deep the noise carves the surface (0 is smooth)
  */
-function weather<T extends THREE.MeshStandardMaterial>(m: T, scale: number, amount: number, grime: number): T {
+function weather<T extends THREE.MeshStandardMaterial>(m: T, scale: number, amount: number, grime: number, bump = 0.7): T {
   m.onBeforeCompile = (sh) => {
     sh.uniforms.wScale = { value: scale };
     sh.uniforms.wAmount = { value: amount };
     sh.uniforms.wGrime = { value: grime };
+    sh.uniforms.wBump = { value: bump };
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWP;')
       .replace('#include <project_vertex>', '#include <project_vertex>\nvWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform float wScale, wAmount, wGrime; varying vec3 vWP;
+uniform float wScale, wAmount, wGrime, wBump; varying vec3 vWP;
 float wHash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 float wNoise(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(wHash(i), wHash(i + vec3(1, 0, 0)), f.x), mix(wHash(i + vec3(0, 1, 0)), wHash(i + vec3(1, 1, 0)), f.x), f.y),
@@ -258,9 +260,17 @@ float wFbm(vec3 p){ return 0.5 * wNoise(p) + 0.3 * wNoise(p * 2.3 + 7.1) + 0.2 *
 float wN = wFbm(vWP * wScale);
 diffuseColor.rgb *= mix(1.0 - wAmount, 1.0 + wAmount * 0.35, wN);
 diffuseColor.rgb *= mix(1.0 - wGrime, 1.0, smoothstep(-0.2, 1.6, vWP.y + (wN - 0.5) * 0.8));`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor + (wN - 0.5) * 0.35, 0.04, 1.0);');
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor + (wN - 0.5) * 0.35, 0.04, 1.0);')
+      // relief: bump the shading normal by the same noise (screen-space derivatives, as three's bump map does), so a
+      // flat-shaded prism reads as chipped, carved stone
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+float wH = wFbm(vWP * wScale * 2.5);
+vec3 wdx = dFdx(-vViewPosition), wdy = dFdy(-vViewPosition);
+vec3 wr1 = cross(wdy, normal), wr2 = cross(normal, wdx);
+float wdet = dot(wdx, wr1);
+normal = normalize(abs(wdet) * normal - wBump * sign(wdet) * (dFdx(wH) * wr1 + dFdy(wH) * wr2));`);
   };
-  m.customProgramCacheKey = () => `weather:${scale}:${amount}:${grime}`;
+  m.customProgramCacheKey = () => `weather:${scale}:${amount}:${grime}:${bump}`;
   return m;
 }
 
