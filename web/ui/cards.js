@@ -90,7 +90,7 @@ export function createCards(app) {
     const rarity = def?.rarity ?? KIND_RARITY[c.kind] ?? "common";
     const el = h(tag, { class: "ccard", data: { rarity }, style: `--el:${app.elementColor(String(c.element ?? "").toLowerCase())}`, ...(tag === "button" ? { type: "button", title: c.name } : {}) },
       h("div", { class: "inner" },
-        h("div", { class: "art" }, c.art ? h("img", { src: c.art, alt: c.name, loading: eager ? "eager" : "lazy", decoding: "async", draggable: false }) : icon("user"),
+        h("div", { class: "art" }, c.art ? h("img", { src: c.art, alt: c.name, loading: eager ? "eager" : "lazy", decoding: "async", draggable: false, on: { load: (e) => { e.currentTarget.dataset.loaded = "1"; } } }) : icon("user"),
           h("span", { class: "kind", text: c.kind ?? RARITY_NAME[rarity] }), h("span", { class: "gem", title: c.element ?? "" })),
         h("div", { class: "cplate" }, h("div", { class: "name", text: c.name }), h("div", { class: "sub", text: [c.element, c.faction].filter(Boolean).join(" · ") }))),
       h("span", { class: "foil" }),

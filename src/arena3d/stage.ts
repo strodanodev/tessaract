@@ -47,6 +47,8 @@ export class Stage {
   private readonly timer = new THREE.Timer();
   private readonly updaters: Array<(dt: number, t: number) => void> = [];
   private readonly target = new THREE.Vector3(0, 0.35, 0);
+  /** The title camera looks across the arena (statues, pillars, the far rim), not down into the dais. */
+  private readonly menuTarget = new THREE.Vector3(0, 2.2, 0);
   private readonly battleSpot = new THREE.Vector3();
   private ratioStep: number;
   private mood: Mood = 'menu';
@@ -253,18 +255,18 @@ export class Stage {
     this.stats.pixelRatio = ratio;
   }
 
-  /** Menu: a slow high circle round the dais (Rapture Chess's attract camera). Battle: high over the dais, barely drifting. */
+  /** Menu: a slow, low circle round the dais, looking across the arena. Battle: high over the dais, barely drifting. */
   private place(dt: number, t: number): void {
     if (this.mood === 'menu') {
       if (!this.still) this.angle += dt * 0.06;
-      const r = 12.6, y = (this.camera.aspect > 1.25 ? 8.2 : 6.6) + Math.sin(this.angle * 0.7) * 0.7;
+      const r = 12.6, y = (this.camera.aspect > 1.25 ? 5.4 : 5.0) + Math.sin(this.angle * 0.7) * 0.5;
       this.camera.position.set(Math.sin(this.angle) * r, y, Math.cos(this.angle) * r);
     } else {
       // steep, so the dais under the HTML table is seen nearly as the table is (it tilts 26deg on screen)
       this.battleSpot.set(this.still ? 0 : Math.sin(t * 0.12) * 0.6, 16.5, 7.5);
       this.camera.position.lerp(this.battleSpot, Math.min(1, dt * 2));
     }
-    this.camera.lookAt(this.target);
+    this.camera.lookAt(this.mood === 'menu' ? this.menuTarget : this.target);
     if (this.shakeLeft > 0) {
       this.shakeLeft -= dt;
       const k = 0.08 * Math.max(0, this.shakeLeft) * 4;

@@ -19,10 +19,12 @@ export function gauntletScreen(app) {
 
   function render() {
     const run = app.profile().gauntlet.current;
-    const road = h("ol", { class: "road" });
+    const road = h("ol", { class: `road${run ? "" : " preview"}` });
     const stage = run ? Math.min(run.wins + 1, g.stages) : 0;
-    // every stage's foe follows from the run's seed, so the whole ladder can be shown up front
-    const foes = run ? Array.from({ length: g.stages }, (_, k) => g.opponent({ ...run, wins: k })) : [];
+    // every stage's foe follows from the run's seed, so the whole ladder can be shown up front; before a run, a
+    // ladder seeded by the day shows the kind of foes waiting, in shadow and unnamed (a real run draws its own)
+    const seeded = run ?? { seed: `preview-${new Date().toISOString().slice(0, 10)}` };
+    const foes = Array.from({ length: g.stages }, (_, k) => g.opponent({ ...seeded, wins: k }));
     for (let i = 1; i <= g.stages; i++) {
       const state = run && i <= run.wins ? "won" : run && i === stage && !run.over ? "next" : run?.over && i === stage && !run.cleared ? "lost" : "";
       const opp = foes[i - 1], card = opp?.tokenId ? app.byToken.get(String(opp.tokenId)) : null;
@@ -30,7 +32,7 @@ export function gauntletScreen(app) {
         h("div", { class: "st-face" }, card?.art ? h("img", { src: card.art, alt: "", loading: "lazy", decoding: "async" }) : icon(i === g.stages ? "crown" : "foe"),
           state === "won" ? h("span", { class: "st-mark" }, icon("check")) : state === "lost" ? h("span", { class: "st-mark" }, icon("close")) : null),
         h("span", { class: "st-n", text: i === g.stages ? "Final" : `Stage ${i}` }),
-        h("span", { class: "st-name", text: opp ? (card?.name ?? opp.name) : "" })));
+        h("span", { class: "st-name", text: run && opp ? (card?.name ?? opp.name) : "" })));
     }
     const panel = h("div", { class: "panel frame meta-panel" });
     const head = (t, badge) => h("div", { class: "panel-head" }, h("h2", { text: t }), badge ? h("span", { class: "badge outline", text: badge }) : null);
