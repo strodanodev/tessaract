@@ -260,7 +260,8 @@ export class Stage {
       const r = 12.6, y = (this.camera.aspect > 1.25 ? 8.2 : 6.6) + Math.sin(this.angle * 0.7) * 0.7;
       this.camera.position.set(Math.sin(this.angle) * r, y, Math.cos(this.angle) * r);
     } else {
-      this.battleSpot.set(this.still ? 0 : Math.sin(t * 0.12) * 0.6, 13.5, 10.5);
+      // steep, so the dais under the HTML table is seen nearly as the table is (it tilts 26deg on screen)
+      this.battleSpot.set(this.still ? 0 : Math.sin(t * 0.12) * 0.6, 16.5, 7.5);
       this.camera.position.lerp(this.battleSpot, Math.min(1, dt * 2));
     }
     this.camera.lookAt(this.target);

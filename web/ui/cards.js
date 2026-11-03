@@ -59,7 +59,7 @@ export function createCards(app) {
     const el = h(tag, { class: `tcard t-${def.type}${small ? " small" : ""}`, data: { rarity: def.rarity ?? "common", el: def.element ?? "neutral" }, style: `--el:${app.elementColor(def.element)}`, title: keywordHelp(def) || undefined, ...(tag === "button" ? { type: "button" } : {}) },
       h("div", { class: "tc-frame" },
         artBox(def, "tc-art"),
-        h("div", { class: "tc-name", text: def.name }),
+        h("div", { class: def.name.length > 12 ? "tc-name long" : "tc-name", text: def.name }),
         h("div", { class: "tc-type", text: typeLine(def) }),
         h("div", { class: "tc-text" }, ...text.map((t) => h("p", null, ...richLine(t))))),
       h("span", { class: "tc-cost tabnum", text: cost }),

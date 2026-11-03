@@ -51,6 +51,8 @@ button.tcard:disabled { cursor: default; filter: saturate(0.4) brightness(0.6); 
 .tcard.small { --w: 64px; }
 .tcard.small .tc-text, .tcard.small .tc-type, .tcard.small .tc-gem { display: none; }
 .tcard.small .tc-frame { grid-template-rows: 1fr auto; }
+/* a long name steps down a size rather than being cut off */
+.tc-name.long { font-size: 0.9em; letter-spacing: 0.01em; }
 .tcard.small .tc-name { margin: 0; font-size: 0.85em; clip-path: none; }
 
 /* ------------------------------------------------------------------ the unit token on the board */

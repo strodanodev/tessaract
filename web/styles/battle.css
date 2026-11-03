@@ -86,9 +86,9 @@
 /* ------------------------------------------------------------------ the battlefield */
 /* the board is a size container: units take the largest size that fits two lanes and five slots, up to --u-max.
    It is also the table: the whole board tilts away from you in 3D, slots lie flat on it, units stand up on it. */
-.battlefield { --tilt: 22deg; --u-max: clamp(72px, 18vh, 160px); container-type: size; transform: perspective(1500px) rotateX(var(--tilt)); transform-origin: 50% 62%; transform-style: preserve-3d; width: min(980px, 100%); display: grid; grid-template-rows: 1fr auto 1fr; align-items: center; gap: 4px; min-height: 0; padding: 4px 0; }
+.battlefield { --tilt: 26deg; --ring: clamp(0px, calc(14cqh - 20px), 40px); --u-max: clamp(72px, 18vh, 160px); container-type: size; transform: perspective(1500px) rotateX(var(--tilt)); transform-origin: 50% 62%; transform-style: preserve-3d; width: min(980px, 100%); display: grid; grid-template-rows: 1fr auto 1fr; align-items: center; gap: 4px; min-height: 0; padding: 4px 0; }
 /* the table: a gilt-rimmed mat on the board's plane (it tilts with the board), with a seat at each end */
-.table-mat { position: absolute; inset: 0 -3%; pointer-events: none; border-radius: 160px / 50%; transform: translateZ(-2px);
+.table-mat { position: absolute; inset: 0 -3%; pointer-events: none; border-radius: 9999px; transform: translateZ(-2px);
   background: radial-gradient(ellipse at 50% 50%, rgba(26, 46, 52, 0.84) 0%, rgba(11, 18, 22, 0.9) 58%, rgba(7, 10, 13, 0.94) 100%);
   border: 1px solid rgba(160, 215, 225, 0.4);
   box-shadow: 0 0 0 6px rgba(10, 8, 14, 0.78), 0 0 0 7px rgba(255, 201, 94, 0.3), 0 34px 70px rgba(0, 0, 0, 0.65), inset 0 0 70px rgba(0, 0, 0, 0.7), inset 0 0 0 12px rgba(255, 201, 94, 0.035); }
@@ -104,7 +104,8 @@
 .tm-glyphs { fill: none; stroke: #92f0ff; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px #3cd4ff) drop-shadow(0 0 8px rgba(60, 212, 255, 0.55)); animation: runeGlow 4.5s ease-in-out infinite; }
 @keyframes runeGlow { 50% { opacity: 0.68; } }
 @media (prefers-reduced-motion: reduce) { .tm-glyphs { animation: none; } }
-.lane { --u: max(40px, min(var(--u-max), calc((50cqh - 26px) / 1.22), calc((100cqw - 90px) / 5))); transform-style: preserve-3d; display: flex; justify-content: center; align-items: center; gap: clamp(8px, 1.4vw, 18px); min-height: calc(var(--u) * 1.22 + 12px); padding: 6px 0; }
+/* the height term leaves the rune ring its band (--ring), so lanes never run into it */
+.lane { --u: max(40px, min(var(--u-max), calc((50cqh - 26px - var(--ring, 0px)) / 1.22), calc((100cqw - 90px) / 5))); transform-style: preserve-3d; display: flex; justify-content: center; align-items: center; gap: clamp(8px, 1.4vw, 18px); min-height: calc(var(--u) * 1.22 + 12px); padding: 6px 0; }
 .slot { flex: none; width: var(--u); height: calc(var(--u) * 1.22 * 0.92); align-self: center; border-radius: 48% 48% 14% 14% / 40% 40% 12% 12%; border: 1px solid rgba(255, 201, 94, 0.22);
   background: radial-gradient(circle at 50% 40%, rgba(255, 201, 94, 0.06), rgba(0, 0, 0, 0.4) 70%); box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.6); }
 /* the enemy's side of the table burns red, yours glows blue */
@@ -260,7 +261,7 @@
 }
 @media (max-height: 820px) and (min-width: 761px) {
   .battlefield { --u-max: clamp(60px, 15vh, 130px); }
-  .hand { --w: clamp(84px, 16vh, 140px); }
+  .hand { --w: clamp(96px, 17vh, 146px); }
   .hud-center { min-height: 46px; }
   .plate { min-height: 56px; }
   .pl-hero, .pl-face { width: 72px; height: 72px; }
@@ -309,7 +310,10 @@
   .lane { gap: 6px; }
   .battlefield, .match.viewing .battlefield { --u-max: 84px; }
   /* phone gaps are 6px, not 18: the width term can give units more */
-  .lane { --u: max(40px, min(var(--u-max), calc((50cqh - 26px) / 1.22), calc((100cqw - 34px) / 5))); }
+  .lane { --u: max(40px, min(var(--u-max), calc((50cqh - 26px) / 1.22), calc((100cqw - 52px) / 5))); }
+  .battlefield { --ring: 0px; }
+  .hand { mask-image: linear-gradient(90deg, #000 86%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 86%, transparent); }
+  .match.viewing .hand .tcard { --w: 88px; }
   .battlefield { --tilt: 14deg; }
   .et-gear { display: none; }
   .pl-orn { width: 30px; height: 10px; }

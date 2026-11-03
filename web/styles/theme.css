@@ -40,6 +40,8 @@
   --panel-soft: linear-gradient(180deg, rgba(20, 16, 26, 0.82), rgba(8, 6, 12, 0.86));
   --font-display: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', Georgia, serif;
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* numbers on gems, badges and tiles: Cinzel's 1 is a Roman I, so 11 read as II */
+  --font-num: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --safe-t: env(safe-area-inset-top, 0px);
@@ -64,6 +66,7 @@ img { -webkit-user-drag: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ------------------------------------------------------------------ type */
+.pl-life, .pw-cost, .tc-cost, .tc-atk, .tc-hp, .u-atk, .u-hp, .tile b, .dl-cost, .deck-count, .stat-row b { font-family: var(--font-num) !important; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: lining-nums tabular-nums; }
 .display { font-family: var(--font-display); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ivory); }
 .kicker { font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--muted); }
 .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-2); }
