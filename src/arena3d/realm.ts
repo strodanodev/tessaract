@@ -180,8 +180,11 @@ export class Realm {
     if (/lava/.test(n)) { const m = lava(); animated.push(m); return m; }
     if (/fire|ember/.test(n)) {
       const m = src.clone();
-      m.emissiveIntensity = /fire/.test(n) ? 3.5 : 2.5;
+      // fire flickers hot; the spires' ember bands only smoulder (at fire's heat, bloom turns them into white bars)
+      m.userData.heat = /fire/.test(n) ? 3.0 : 1.6;
+      m.emissiveIntensity = m.userData.heat;
       m.color.set(0x1a0805);
+      if (!/fire/.test(n)) m.emissive.set(0xff4a12);   // embers glow a deep orange, not the source's pale gold
       fires.push(m);
       return m;
     }
@@ -195,7 +198,11 @@ export class Realm {
       m.metalness = 0; m.roughness = 0.9; m.envMapIntensity = 0.25;
       return m;
     }
-    if (/crystal/.test(n)) { const m = src.clone(); m.emissiveIntensity = 3.2; return m; }
+    // crystals: glossy, faceted and iridescent, lit from within, instead of flat glowing triangles
+    if (/crystal/.test(n)) {
+      const glow = src.emissive.clone().multiply(new THREE.Color(0.85, 0.55, 0.4));   // deep ember red: pale pink blooms to white
+      return new THREE.MeshPhysicalMaterial({ color: glow.clone().multiplyScalar(0.3), emissive: glow, emissiveIntensity: 0.7, roughness: 0.06, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04, iridescence: 0.7, iridescenceIOR: 1.6, envMapIntensity: 2.4, flatShading: true });
+    }
     // the untextured surfaces get weathering (see weather()), or they read as flat greybox next to the photo stone
     if (/banner/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x14284a, roughness: 0.85, metalness: 0, side: THREE.DoubleSide }), 5, 0.35, 0.2, 0.25);
     if (/gold/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.32, metalness: 1, envMapIntensity: 1.2 }), 3, 0.3, 0.35, 0.3);
@@ -210,7 +217,7 @@ export class Realm {
   private update(_dt: number, t: number): void {
     const fog = this.stage.scene.fog as THREE.FogExp2;
     for (const m of this.animated) { m.uniforms.time.value = t; (m.uniforms.fogColor.value as THREE.Color).copy(fog.color); m.uniforms.fogDensity.value = fog.density; }
-    for (let i = 0; i < this.fires.length; i++) this.fires[i].emissiveIntensity = 3.0 + 0.8 * Math.sin(t * 7 + i * 1.7) * Math.sin(t * 3.1 + i);
+    for (let i = 0; i < this.fires.length; i++) { const heat = this.fires[i].userData.heat ?? 3.0; this.fires[i].emissiveIntensity = heat * (1 + 0.27 * Math.sin(t * 7 + i * 1.7) * Math.sin(t * 3.1 + i)); }
   }
 }
 
@@ -277,21 +284,30 @@ normal = normalize(abs(wdet) * normal - wBump * wFade * sign(wdet) * (dFdx(wH) *
   return m;
 }
 
-/** Flowing lava: two layers of scrolling noise, hot cracks over a dark crust, emissive enough to bloom. */
+/**
+ * Flowing lava: two layers of scrolling noise, hot cracks over a dark crust, emissive enough to bloom. A level pool
+ * drifts sideways; a vertical fall (the spires' lava falls) maps its noise up the surface and pours downward, instead
+ * of smearing the pool's top-down pattern into a solid glowing bar.
+ */
 function lava(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: { time: { value: 0 }, hot: { value: new THREE.Color(0xff7a1a) }, crust: { value: new THREE.Color(0x1a0604) }, fogColor: { value: new THREE.Color() }, fogDensity: { value: 0.02 } },
-    vertexShader: 'varying vec3 vW; varying vec2 vUv; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; vUv = w.xz * 0.35; gl_Position = projectionMatrix * viewMatrix * w; }',
-    fragmentShader: `uniform float time; uniform vec3 hot, crust, fogColor; uniform float fogDensity; varying vec3 vW; varying vec2 vUv;
+    vertexShader: `varying vec3 vW; varying vec2 vUv; varying float vFall;
+      void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz;
+        vec3 n = normalize(mat3(modelMatrix) * normal); vFall = 1.0 - step(0.5, abs(n.y));
+        vUv = vFall > 0.5 ? vec2((w.x + w.z) * 0.6, w.y * 0.22) : w.xz * 0.35;
+        gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `uniform float time; uniform vec3 hot, crust, fogColor; uniform float fogDensity; varying vec3 vW; varying vec2 vUv; varying float vFall;
       float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
         return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
       float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { v += a * noise(p); p = p * 2.1 + 3.7; a *= 0.5; } return v; }
       void main(){
-        vec2 uv = vUv + vec2(time * 0.02, time * 0.012);
+        vec2 uv = vUv + (vFall > 0.5 ? vec2(0.0, time * 0.18) : vec2(time * 0.02, time * 0.012));
         float n = fbm(uv * 2.0 + fbm(uv * 1.5 - time * 0.03) * 1.5);
         float glow = pow(smoothstep(0.42, 0.62, n), 1.6);
-        vec3 c = mix(crust, hot * 3.5, glow) + hot * 0.25 * smoothstep(0.3, 0.45, n);
+        // a fall burns cooler than the pool: seen edge-on at full heat, bloom washes it into a solid white bar
+        vec3 c = mix(crust, hot * mix(3.5, 1.5, vFall), glow) + hot * 0.25 * smoothstep(0.3, 0.45, n);
         float d = length(cameraPosition - vW); float f = 1.0 - exp(-fogDensity * fogDensity * d * d);
         gl_FragColor = vec4(mix(c, fogColor, f), 1.0); }`,
   });
