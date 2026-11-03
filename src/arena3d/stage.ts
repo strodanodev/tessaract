@@ -41,6 +41,8 @@ export class Stage {
   private readonly sky: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial>;
   private readonly motes: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
   private readonly shadows: boolean;
+  /** A phone or tablet: the stage keeps its extras (shadows, statues) off. */
+  readonly coarse: boolean;
   private readonly stars: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>;
   private readonly timer = new THREE.Timer();
   private readonly updaters: Array<(dt: number, t: number) => void> = [];
@@ -75,6 +77,7 @@ export class Stage {
     // phones start one step down: a weak GPU shouldn't have to prove itself slow first
     this.ratioStep = opts.coarse ? 1 : 0;
     // one static shadow map: rendered when a realm loads (refreshShadows), never per frame
+    this.coarse = opts.coarse;
     this.shadows = !opts.coarse;
     if (this.shadows) {
       this.renderer.shadowMap.enabled = true;

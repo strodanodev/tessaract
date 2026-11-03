@@ -3,6 +3,10 @@
  * and the Underworld (the Horde's basalt crater with a lava moat). Each is a Blender-built arena GLB plus a sky, fog
  * and lighting preset, and a couple of animated materials (flowing lava, flickering fire).
  *
+ * A game may also stand statues round the arena: assets/arena/statues.json lists GLBs (in statues/) and a ring per
+ * realm ({ files: [...], realms: { valhalla: { radius, height, offset?, ground? } } }: ground is the floor's height there). They stand on plinths facing the table,
+ * in the realm's weathered stone, and skip phones. Valhalla's dais also gets a raised, stepped octagonal rim.
+ *
  * The GLBs are the Rapture Chess arenas with their Draco compression decoded at build time and the meshes quantized
  * (KHR_mesh_quantization), so three.js reads them with no decoder, WebAssembly or worker.
  */
@@ -11,6 +15,9 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { SkyColors, Stage } from './stage';
 
 export type RealmId = 'valhalla' | 'underworld';
+
+interface StatueRing { radius: number; height: number; offset?: number; ground?: number }
+interface StatueManifest { files: string[]; realms?: Partial<Record<RealmId, StatueRing>> }
 
 interface Preset {
   sky: SkyColors;
@@ -57,6 +64,9 @@ export class Realm {
   private readonly cache = new Map<RealmId, Promise<THREE.Group | null>>();
   private animated: THREE.ShaderMaterial[] = [];
   private fires: THREE.MeshStandardMaterial[] = [];
+  /** Statues and the dais rim, rebuilt for each realm. */
+  private readonly dressing = new THREE.Group();
+  private statues: Promise<{ manifest: StatueManifest; models: THREE.Object3D[] } | null> | null = null;
   id: RealmId | null = null;
 
   constructor(private readonly stage: Stage, private readonly base: string) {
@@ -92,9 +102,57 @@ export class Realm {
     this.group.clear();
     this.animated = scene.userData.animated ?? [];
     this.fires = scene.userData.fires ?? [];
-    this.group.add(scene);
+    this.group.add(scene, this.dressing);
     this.stage.refreshShadows();
+    void this.dressRealm(id);
     return true;
+  }
+
+  /** The statue models and their manifest, fetched once; null if the game has none. */
+  private loadStatues(): Promise<{ manifest: StatueManifest; models: THREE.Object3D[] } | null> {
+    this.statues ??= fetch(`${this.base}statues.json`).then((r) => (r.ok ? r.json() : null)).then(async (manifest: StatueManifest | null) => {
+      if (!manifest?.files?.length) return null;
+      const models = await Promise.all(manifest.files.map((f) => this.loader.loadAsync(`${this.base}statues/${f}`).then((g) => g.scene, () => null)));
+      const ok = models.filter((m): m is THREE.Group => !!m);
+      return ok.length ? { manifest, models: ok } : null;
+    }).catch(() => null);
+    return this.statues;
+  }
+
+  /** Stand this realm's statues on their plinths and raise the dais rim; then re-render the static shadows. */
+  private async dressRealm(id: RealmId): Promise<void> {
+    this.dressing.clear();
+    const p = PRESETS[id];
+    const stone = (color: number): THREE.MeshStandardMaterial => weather(new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.04, envMapIntensity: 0.3 }), 1.7, 0.5, 0.35);
+    if (p.floorRadius > 0) this.dressing.add(daisRim(p.floorRadius, stone(id === 'valhalla' ? 0x56565a : 0x3a3034)));
+    const found = this.stage.coarse ? null : await this.loadStatues();
+    const ring = found?.manifest.realms?.[id];
+    if (found && ring && this.id === id) {
+      const plinth = stone(id === 'valhalla' ? 0x4a4a4e : 0x5a4842);
+      const block = new THREE.BoxGeometry(1.5, 1.1, 1.5), slab = new THREE.BoxGeometry(1.85, 0.2, 1.85);
+      const n = found.models.length;
+      for (let i = 0; i < n; i++) {
+        const a = (ring.offset ?? 0) + (i / n) * Math.PI * 2;
+        // the statue GLBs are static (their pose is baked when they're made), so a plain clone is safe
+        const statue = found.models[i].clone(true);
+        this.dress(statue, id);
+        const box = new THREE.Box3().setFromObject(statue), size = box.getSize(new THREE.Vector3());
+        const k = ring.height / Math.max(0.001, size.y);
+        statue.scale.setScalar(k);
+        statue.position.y = 1.3 - box.min.y * k;
+        const base = new THREE.Mesh(block, plinth), top = new THREE.Mesh(slab, plinth);
+        base.position.y = 0.55; top.position.y = 1.2;
+        const spot = new THREE.Group();
+        spot.add(base, top, statue);
+        spot.traverse((o) => { if (o instanceof THREE.Mesh) { o.castShadow = true; o.receiveShadow = true; } });
+        spot.position.set(Math.sin(a) * ring.radius, ring.ground ?? 0, Math.cos(a) * ring.radius);
+        spot.lookAt(0, ring.ground ?? 0, 0);
+        this.dressing.add(spot);
+      }
+    }
+    if (this.id !== id) return;
+    await this.stage.renderer.compileAsync(this.dressing, this.stage.camera, this.stage.scene);
+    this.stage.refreshShadows();
   }
 
   /** Swap the Blender placeholder materials for the stage's: animated lava, glowing fire, worn stone and metal. */
@@ -142,6 +200,7 @@ export class Realm {
     if (/banner/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x14284a, roughness: 0.85, metalness: 0, side: THREE.DoubleSide }), 5, 0.35, 0.2);
     if (/gold/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.32, metalness: 1, envMapIntensity: 1.2 }), 3, 0.3, 0.35);
     if (/obsidian/.test(n)) return weather(new THREE.MeshPhysicalMaterial({ color: 0x0c080e, roughness: 0.28, metalness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.3, envMapIntensity: 1.0 }), 1.4, 0.55, 0.3);
+    if (/statue|chrome|accent/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x7c8687 : 0x5e4c48, roughness: 0.82, metalness: 0.05, envMapIntensity: 0.4 }), 2.6, 0.45, 0.45);
     if (/bone/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x80735c, roughness: 0.82, metalness: 0 }), 2.2, 0.55, 0.55);
     if (/basalt/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x15111a, roughness: 0.9, metalness: 0.08 }), 1.6, 0.5, 0.3);
     if (/dark/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x1a1613, roughness: 0.7, metalness: 0.15 }), 2, 0.45, 0.3);
@@ -153,6 +212,24 @@ export class Realm {
     for (const m of this.animated) { m.uniforms.time.value = t; (m.uniforms.fogColor.value as THREE.Color).copy(fog.color); m.uniforms.fogDensity.value = fog.density; }
     for (let i = 0; i < this.fires.length; i++) this.fires[i].emissiveIntensity = 3.0 + 0.8 * Math.sin(t * 7 + i * 1.7) * Math.sin(t * 3.1 + i);
   }
+}
+
+/** A raised, stepped octagonal stone rim round a dais of radius r: two flat rings, the inner one higher. */
+function daisRim(r: number, mat: THREE.Material): THREE.Group {
+  const octagon = (rad: number): THREE.Vector2[] => Array.from({ length: 8 }, (_, i) => new THREE.Vector2(Math.cos((i + 0.5) * Math.PI / 4) * rad, Math.sin((i + 0.5) * Math.PI / 4) * rad));
+  const ringOf = (inner: number, outer: number, depth: number, top: number): THREE.Mesh => {
+    const shape = new THREE.Shape(octagon(outer));
+    shape.holes.push(new THREE.Path(octagon(inner)));
+    const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.05, bevelSegments: 1 });
+    geo.rotateX(-Math.PI / 2);
+    const m = new THREE.Mesh(geo, mat);
+    m.position.y = top - depth;
+    m.castShadow = true; m.receiveShadow = true;
+    return m;
+  };
+  const g = new THREE.Group();
+  g.add(ringOf(r / Math.cos(Math.PI / 8), r * 1.14, 0.32, 0.14), ringOf(r * 1.14, r * 1.28, 0.26, -0.04));
+  return g;
 }
 
 /**
