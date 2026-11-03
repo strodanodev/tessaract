@@ -156,6 +156,9 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .stat-rows { display: grid; gap: 8px; }
 .stat-row { display: grid; grid-template-columns: 110px 30px 1fr; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
 .stat-row b { font-family: var(--font-display); font-size: 15px; color: var(--ivory); text-align: right; }
+.pips { display: flex; gap: 4px; }
+.pips i { flex: 1; max-width: 26px; height: 8px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
+.pips i.on { background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
 .sr-k { letter-spacing: 0.12em; text-transform: uppercase; font-size: 10.5px; }
 .cd-power { padding: 10px 12px; border: 1px solid var(--line); border-radius: 3px; background: rgba(255, 201, 94, 0.05); display: grid; gap: 4px; }
 .cd-power p { margin: 0; display: grid; gap: 2px; font-size: 13px; color: #d6cdbc; }
@@ -239,7 +242,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .meta-body.narrow { max-width: 620px; }
 .meta-panel .panel-body.stack, .meta-panel .stack { display: grid; gap: 14px; }
 /* the Gauntlet ladder: eight foe portraits; won ones gilded, the next one lit, the rest in shadow */
-.road { list-style: none; margin: 0; padding: 6px 0 2px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; }
+.road { list-style: none; margin: 0; padding: 10px 8px 2px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; }
 .stage { position: relative; display: grid; justify-items: center; gap: 4px; text-align: center; min-width: 0; }
 .st-face { position: relative; width: 100%; aspect-ratio: 3 / 4; border-radius: 6px; overflow: hidden; display: grid; place-items: center; color: var(--dim); border: 1px solid var(--line-strong);
   background: radial-gradient(circle at 50% 35%, #2a2133, #0e0b13 75%); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5); transition: transform 0.3s var(--ease-out), box-shadow 0.3s; }

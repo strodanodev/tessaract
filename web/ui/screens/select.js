@@ -26,9 +26,11 @@ export function selectScreen(app) {
     const m = app.game.champion;
     const row = (label, value, map, accent) => {
       const span = Math.max(1, map.max - map.min);
-      return h("div", { class: "stat-row" },
-        h("span", { class: "sr-k", text: label }), h("b", { class: "tabnum", text: value }),
-        h("div", { class: "meter", style: `--accent:${accent}` }, h("i", { style: `--v:${Math.round(((value - map.min) / span) * 100)}%` })));
+      // a stat that only counts to a few reads as pips (1 of 3), not a bar that is full at 1
+      const scale = map.max <= 8
+        ? h("div", { class: "pips", style: `--accent:${accent}`, aria: { label: `${value} of ${map.max}` } }, ...Array.from({ length: map.max }, (_, i) => h("i", { class: i < value ? "on" : "" })))
+        : h("div", { class: "meter", style: `--accent:${accent}` }, h("i", { style: `--v:${Math.round(((value - map.min) / span) * 100)}%` }));
+      return h("div", { class: "stat-row" }, h("span", { class: "sr-k", text: label }), h("b", { class: "tabnum", text: value }), scale);
     };
     return h("div", { class: "stat-rows" },
       row("Life", ch.life, m.life, "var(--danger)"),

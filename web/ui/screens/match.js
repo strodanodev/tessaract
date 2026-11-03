@@ -130,8 +130,12 @@ export function matchScreen(app) {
     node.addEventListener("click", (e) => { if (held) { held = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
     return node;
   }
-  /** Empty slot plates after a side's units, so the board shows its shape even when empty. */
-  const slots = (used) => Array.from({ length: Math.max(0, (game.rules.boardSlots ?? 5) - used) }, () => h("div", { class: "slot", aria: { hidden: "true" } }));
+  /** Empty slot plates either side of a side's units (units fill from the centre), so the board shows its shape. */
+  const slot = () => h("div", { class: "slot", aria: { hidden: "true" } });
+  const framed = (units) => {
+    const empty = Math.max(0, (game.rules.boardSlots ?? 5) - units.length);
+    return [...Array.from({ length: Math.floor(empty / 2) }, slot), ...units, ...Array.from({ length: Math.ceil(empty / 2) }, slot)];
+  };
 
   // ------------------------------------------------------------------ helpers
   const act = (x) => { pick = null; session?.act(x); };
@@ -173,7 +177,8 @@ export function matchScreen(app) {
     const watching = viewing();
     const who = watching ? playerName(P.id) : actor === meIdx ? "You" : "Opponent";
     const enemyChampion = watching ? `${possessive(playerName(E.id))} champion` : actor === meIdx ? "the enemy champion" : "your champion";
-    const tgt = () => (target === ENEMY_CHAMPION ? enemyChampion : target < 10 ? cardName(E.board[target - 1]?.c) : target === 10 ? "" : cardName(P.board[target - 11]?.c));
+    const theirs = watching ? possessive(playerName(E.id)) : actor === meIdx ? "their" : "your";
+    const tgt = () => (target === ENEMY_CHAMPION ? enemyChampion : target < 10 ? `${theirs} ${cardName(E.board[target - 1]?.c)}` : target === 10 ? "" : cardName(P.board[target - 11]?.c));
     let line = "";
     if (op === Op.Play) line = `${who} played ${cardName(P.hand[a])}${target ? ` → ${tgt()}` : ""}`;
     else if (op === Op.Power) line = `${who} used ${game.champion.powers?.[P.power]?.name ?? "a power"}${target ? ` → ${tgt()}` : ""}`;
@@ -303,13 +308,13 @@ export function matchScreen(app) {
     meP.el.classList.toggle("low", low(me));
     el.classList.toggle("danger", !watching && low(me));
 
-    foeLane.replaceChildren(...foe.board.map((u, slot) => {
+    foeLane.replaceChildren(...framed(foe.board.map((u, slot) => {
       const b = inspectable(app.cards.unitToken(game.cards[u.c], u), game.cards[u.c]);
       const x = targets.get(enemyUnit(slot));
       if (x !== undefined) { b.classList.add("target"); b.addEventListener("click", () => act(x)); }
       return b;
-    }), ...slots(foe.board.length));
-    myLane.replaceChildren(...me.board.map((u, slot) => {
+    })));
+    myLane.replaceChildren(...framed(me.board.map((u, slot) => {
       const b = inspectable(app.cards.unitToken(game.cards[u.c], u), game.cards[u.c]);
       const buff = targets.get(ownUnit(slot));
       const canAttack = moves.some((m) => m.op === Op.Attack && m.a === slot);
@@ -320,7 +325,7 @@ export function matchScreen(app) {
         b.addEventListener("click", () => { pick = pick?.kind === "unit" && pick.index === slot ? null : { kind: "unit", index: slot }; render(); });
       }
       return b;
-    }), ...slots(me.board.length));
+    })));
     const n = me.hand.length;
     hand.style.setProperty("--n", String(Math.max(1, n)));
     hand.replaceChildren(...me.hand.map((c, index) => {
