@@ -2,6 +2,13 @@
 
 Every rules or card change ships under a new `rulesetId`, so a game built on an older Deckwright keeps replaying exactly as it did.
 
+## 0.9.9 (2026-11-06): named arena files
+
+No rules change: every ruleset replays exactly as before.
+
+- **A game can name its arena files.** `assets/arena/arena.json` maps each realm to its GLB, for example `{ "realms": { "valhalla": "valhalla.2.glb" } }`. Both the arena worker and the page read it. A rebuilt arena can then ship under a new file name, past a long-lived asset cache.
+- **Without the file**, the arena is `<realm>.glb`, as before.
+
 ## 0.9.8 (2026-11-06): the battle look, statues and an art pass
 
 No rules change: every ruleset replays exactly as before.
