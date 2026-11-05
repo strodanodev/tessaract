@@ -54,8 +54,8 @@ export class Stage {
   private readonly updaters: Array<(dt: number, t: number) => void> = [];
   /** The title camera looks across the arena (statues, pillars, the far rim), not down into the dais. */
   private readonly menuTarget = new THREE.Vector3(0, 2.8, 0);
-  /** In battle the camera aims 2.1 m in front of the table, so the table sits under the HTML board (above mid-screen). */
-  private readonly battleTarget = new THREE.Vector3(0, 0.35, 2.1);
+  /** In battle the camera aims 1.2 m in front of the table, so the table sits under the HTML board (above mid-screen). */
+  private readonly battleTarget = new THREE.Vector3(0, 0.6, 1.2);
   private readonly battleSpot = new THREE.Vector3();
   private ratioStep: number;
   private mood: Mood = 'menu';
@@ -303,7 +303,9 @@ export class Stage {
       this.camera.position.set(Math.sin(this.angle) * r, y, Math.cos(this.angle) * r);
     } else {
       // steep, so the dais under the HTML table is seen nearly as the table is (it tilts 26deg on screen)
-      this.battleSpot.set(this.still ? 0 : Math.sin(t * 0.12) * 0.6, 16.5, 9.6);
+      // a lower, three-quarter view: the arena's statues and spires stand as silhouettes round the table instead of
+      // flattening into slabs seen from above (the table is fitted under the board from wherever the camera is)
+      this.battleSpot.set(this.still ? 0 : Math.sin(t * 0.12) * 0.5, 11.5, 13.5);
       this.camera.position.lerp(this.battleSpot, Math.min(1, dt * 2));
     }
     this.camera.lookAt(this.mood === 'menu' ? this.menuTarget : this.battleTarget);
