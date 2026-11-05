@@ -1,6 +1,6 @@
 {
   "name": "tessaract",
-  "version": "0.9.9",
+  "version": "0.9.10",
   "private": true,
   "description": "Tessaract: a lightweight Web3 trading card game maker. One JSON file is a game; ERC-6699 agents are champions; matches replay deterministically and are ready for LitNode settlement.",
   "license": "Apache-2.0",

@@ -2,6 +2,25 @@
 
 Every rules or card change ships under a new `rulesetId`, so a game built on an older Deckwright keeps replaying exactly as it did.
 
+## 0.9.10 (2026-11-06): card illustrations, a stone table and an arena grade
+
+No rules change: every ruleset replays exactly as before.
+
+- **Card illustrations:**
+  - a game can name art for cards without a painting in an optional `assets/cards/art.json` (`{ "<card id>": "<file>" }`);
+  - a card's art comes from its token's painting, then its `art`, then `art.json`, and otherwise falls back to the generated sigil;
+  - local art paths reject schemes, `//host` and `..`.
+- **The 3D table:**
+  - a carved stone stadium table stands on a pedestal at the centre of the dais, with a gilt band and a glowing groove;
+  - the page posts the board's on-screen box to the arena worker (a new `board` message), and the table is scaled and moved to sit under it;
+  - the board's mat is semi-transparent, so the stone shows through.
+- **Light and post:**
+  - ambient occlusion (GTAO, half resolution, desktop only);
+  - a final grade with a per-realm shadow tint, vignette and grain;
+  - embers glow hotter, and the title camera sits lower.
+- **Cards and hand:** long rules text steps down a size, and a fanned hand overlaps less.
+- **Arena cost:** about 2.5–3.2 ms a frame on a GPU, with no main-thread blocking. The arena bundle is 183 KB gzipped.
+
 ## 0.9.9 (2026-11-06): named arena files
 
 No rules change: every ruleset replays exactly as before.
