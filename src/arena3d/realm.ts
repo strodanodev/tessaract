@@ -130,6 +130,9 @@ export class Realm {
     const p = PRESETS[id];
     const stone = (color: number): THREE.MeshStandardMaterial => weather(new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.04, envMapIntensity: 0.3 }), 1.7, 0.5, 0.35, 0.45);
     if (p.floorRadius > 0) this.dressing.add(daisRim(p.floorRadius, stone(id === 'valhalla' ? 0x56565a : 0x3a3034)));
+    // the battle table: a carved stone slab on a pedestal at the centre of the dais, gilt-edged; the HTML board lies
+    // over it in battle, and on the title it is the arena's centrepiece
+    this.dressing.add(battleTable(stone(id === 'valhalla' ? 0x3c5a60 : 0x4a2e2a), stone(id === 'valhalla' ? 0x2c2c32 : 0x231a1c), id === 'valhalla' ? 0x7fe6ff : 0xff6a2a));
     const found = this.stage.coarse ? null : await this.loadStatues();
     const ring = found?.manifest.realms?.[id];
     if (found && ring && this.id === id) {
@@ -224,6 +227,48 @@ export class Realm {
     for (const m of this.animated) { m.uniforms.time.value = t; (m.uniforms.fogColor.value as THREE.Color).copy(fog.color); m.uniforms.fogDensity.value = fog.density; }
     for (let i = 0; i < this.fires.length; i++) { const heat = this.fires[i].userData.heat ?? 3.0; this.fires[i].emissiveIntensity = heat * (1 + 0.27 * Math.sin(t * 7 + i * 1.7) * Math.sin(t * 3.1 + i)); }
   }
+}
+
+/** A stadium outline (a rectangle whose short ends are half circles), length along x, as a three.js Shape. */
+function stadiumShape(length: number, depth: number): THREE.Shape {
+  const r = depth / 2, half = length / 2 - r, s = new THREE.Shape();
+  s.moveTo(-half, -r);
+  s.lineTo(half, -r);
+  s.absarc(half, 0, r, -Math.PI / 2, Math.PI / 2, false);
+  s.lineTo(-half, r);
+  s.absarc(-half, 0, r, Math.PI / 2, Math.PI * 1.5, false);
+  return s;
+}
+
+/** Extrude a shape upward (it lies in the x-z plane) from `bottom` by `height`, with a bevelled edge. */
+function slab(shape: THREE.Shape, height: number, bottom: number, mat: THREE.Material, bevel = 0.06): THREE.Mesh {
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: height, bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2, curveSegments: 24 });
+  geo.rotateX(-Math.PI / 2);
+  const m = new THREE.Mesh(geo, mat);
+  m.position.y = bottom;
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+
+/**
+ * The battle table: a stadium-shaped stone slab (15 x 7.6 m) on a narrower pedestal, a gilt band round its top edge
+ * and a faint glowing groove inset from it. Long axis along x, as the board lies on screen.
+ */
+function battleTable(top: THREE.Material, base: THREE.Material, glow: number): THREE.Group {
+  const g = new THREE.Group();
+  // a little larger than the HTML board laid over it, so its stone and gilt edge frame the board as its base
+  const L = 15, D = 7.6;
+  g.add(slab(stadiumShape(L * 0.72, D * 0.55), 0.6, -0.2, base, 0.08));
+  g.add(slab(stadiumShape(L, D), 0.34, 0.4, top, 0.07));
+  const band = stadiumShape(L + 0.24, D + 0.24);
+  band.holes.push(stadiumShape(L - 0.1, D - 0.1));
+  g.add(slab(band, 0.1, 0.62, new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.3, metalness: 1, envMapIntensity: 1.2 }), 0.02));
+  const groove = stadiumShape(L - 1.0, D - 1.0);
+  groove.holes.push(stadiumShape(L - 1.12, D - 1.12));
+  const line = slab(groove, 0.02, 0.8, new THREE.MeshStandardMaterial({ color: 0x050608, emissive: glow, emissiveIntensity: 1.4 }), 0);
+  line.castShadow = false;
+  g.add(line);
+  return g;
 }
 
 /** A raised, stepped octagonal stone rim round a dais of radius r: two flat rings, the inner one higher. */

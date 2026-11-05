@@ -52,7 +52,7 @@ const elementColor = (id) => ELEMENT_COLOR[id] ?? `var(--${/^[a-z]+$/.test(id ??
 // A card's art: its token's painting from the collection snapshot, else a local image the game names in "art", else
 // one from assets/cards/art.json (the CSP serves same-origin images only, so remote and ipfs:// URLs are skipped).
 // No art at all: the card draws a generated sigil (ui/sigil.js).
-const localArt = (src) => (typeof src === "string" && src && !/^[a-z]+:/i.test(src) && !src.includes("..") ? src : null);
+const localArt = (src) => (typeof src === "string" && src && !/^[a-z]+:/i.test(src) && !src.startsWith("//") && !src.includes("..") ? src : null);
 const artOf = (def) => (def.token ? byToken.get(String(def.token.tokenId))?.art : null) ?? localArt(def.art) ?? (localArt(cardArt[def.id]) ? `./assets/cards/${cardArt[def.id]}` : null);
 const nameOf = (id) => game.cards.find((c) => c.id === id)?.name ?? id;
 const statsOf = (c) => (c ? statsFromCore(c.stats) : undefined);
