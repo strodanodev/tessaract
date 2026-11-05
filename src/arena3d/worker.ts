@@ -40,6 +40,8 @@ async function init(m: Extract<In, { type: 'init' }>): Promise<void> {
   stage.setMood(m.mood);
   stage.start();
   if (!(await realm.load(m.realm))) { stage.dispose(); stage = null; post({ type: 'failed', reason: `arena model ${m.realm} unavailable` }); return; }
+  // the page may have switched realm meanwhile: report ready only once a model is actually showing
+  await realm.shown();
   post({ type: 'ready', gpu, ms: { stage: Math.round(t1 - t0), realm: Math.round(performance.now() - t1) } });
   setInterval(() => { if (stage) post({ type: 'stats', stats: stage.getStats() }); }, 2000);
 }

@@ -80,6 +80,9 @@ export class Realm {
   private statues: Promise<{ manifest: StatueManifest; models: THREE.Object3D[] } | null> | null = null;
   private files: Promise<Partial<Record<RealmId, string>>> | null = null;
   id: RealmId | null = null;
+  /** The realm whose model is on screen, and who waits for the current one to be (see shown()). */
+  private shownId: RealmId | null = null;
+  private waiting: Array<() => void> = [];
 
   constructor(private readonly stage: Stage, private readonly base: string) {
     stage.scene.add(this.group);
@@ -117,9 +120,20 @@ export class Realm {
     this.animated = scene.userData.animated ?? [];
     this.fires = scene.userData.fires ?? [];
     this.group.add(scene, this.dressing);
+    this.shownId = id;
+    if (this.shownId === this.id) for (const w of this.waiting.splice(0)) w();
     this.stage.refreshShadows();
     void this.dressRealm(id);
     return true;
+  }
+
+  /**
+   * Resolves once the current realm's model is on screen. A realm switch while the first model loads makes that
+   * load step aside (it is no longer current), so "loaded" is not "showing": the page must not swap its CSS arena
+   * for an empty stage.
+   */
+  shown(): Promise<void> {
+    return this.shownId === this.id ? Promise.resolve() : new Promise((resolve) => this.waiting.push(resolve));
   }
 
   /** The statue models and their manifest, fetched once; null if the game has none. */
