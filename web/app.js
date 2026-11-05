@@ -38,7 +38,9 @@ const WATCH = !!RELAY && q.get("watch") === "1";
 const randomSeed = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, "0")).join("");
 
 boot(0.15, "Reading the game");
-const [game, snap] = await Promise.all([fetch("./data/game.json").then((r) => r.json()), fetch("./data/collection.json").then((r) => r.json())]);
+// assets/cards/art.json (optional) names an illustration for cards with no painting: { "<card id>": "<file>" }
+const [game, snap, cardArt] = await Promise.all([fetch("./data/game.json").then((r) => r.json()), fetch("./data/collection.json").then((r) => r.json()),
+  fetch("./assets/cards/art.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({}))]);
 boot(0.45, "Forging the rules");
 const rules = createRules(compileGame(game));
 const byToken = new Map(snap.cards.map((c) => [String(c.tokenId), c]));
@@ -47,9 +49,11 @@ document.title = game.title;
 // Element accents come from the game config (elements[].color), else the theme's defaults (styles/theme.css).
 const ELEMENT_COLOR = Object.fromEntries(game.elements.filter((e) => /^#[0-9a-f]{3,8}$/i.test(e.color ?? "")).map((e) => [e.id, e.color]));
 const elementColor = (id) => ELEMENT_COLOR[id] ?? `var(--${/^[a-z]+$/.test(id ?? "") ? id : "neutral"}, var(--neutral))`;
-// A card's art: its token's painting from the collection snapshot, else a local image the game names in "art"
-// (the CSP serves same-origin images only, so remote and ipfs:// URLs are skipped).
-const artOf = (def) => (def.token ? byToken.get(String(def.token.tokenId))?.art : null) ?? (def.art && !/^[a-z]+:/i.test(def.art) ? def.art : null);
+// A card's art: its token's painting from the collection snapshot, else a local image the game names in "art", else
+// one from assets/cards/art.json (the CSP serves same-origin images only, so remote and ipfs:// URLs are skipped).
+// No art at all: the card draws a generated sigil (ui/sigil.js).
+const localArt = (src) => (typeof src === "string" && src && !/^[a-z]+:/i.test(src) && !src.includes("..") ? src : null);
+const artOf = (def) => (def.token ? byToken.get(String(def.token.tokenId))?.art : null) ?? localArt(def.art) ?? (localArt(cardArt[def.id]) ? `./assets/cards/${cardArt[def.id]}` : null);
 const nameOf = (id) => game.cards.find((c) => c.id === id)?.name ?? id;
 const statsOf = (c) => (c ? statsFromCore(c.stats) : undefined);
 const claimOf = (c) => (c ? { tokenId: String(c.tokenId), stats: statsOf(c) } : undefined);
