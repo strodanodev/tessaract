@@ -2,6 +2,17 @@
 
 Every rules or card change ships under a new `rulesetId`, so a game built on an older Deckwright keeps replaying exactly as it did.
 
+## 0.9.11 (2026-11-06): phone rules strip and page polish
+
+No rules change: every ruleset replays exactly as before.
+
+- **Phones:**
+  - a strip above the hand reads out the picked card's rules. With nothing picked, it shows "Tap a card to play it · hold it to read it";
+  - the Gauntlet ladder shows all eight foes as a 4×2 grid, with brighter preview silhouettes.
+- **Card art:** rendered illustrations are framed centrally and enlarged on unit tokens, so they read at board size.
+- **Result text:** life is floored at 0, so it no longer says "-1 life left".
+- **Tests:** the relay test reads Alice's seat instead of assuming seat 0. Seats follow hello order, so it was flaky.
+
 ## 0.9.10 (2026-11-06): card illustrations, a stone table and an arena grade
 
 No rules change: every ruleset replays exactly as before.
