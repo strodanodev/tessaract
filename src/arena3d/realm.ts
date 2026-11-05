@@ -32,6 +32,8 @@ interface Preset {
   envIntensity: number;
   floorRadius: number;
   motes: { color: number; rise: number; size: number; opacity: number };
+  /** The hue the shadows take in the final grade (multiplied in, so 1 is neutral). */
+  grade: number;
 }
 
 const PRESETS: Record<RealmId, Preset> = {
@@ -43,6 +45,7 @@ const PRESETS: Record<RealmId, Preset> = {
     hemi: { sky: 0x3a6878, ground: 0x14120e, intensity: 0.6 },
     envIntensity: 0.6, floorRadius: 9.05,
     motes: { color: 0xbff6ff, rise: 0.12, size: 1, opacity: 0.55 },
+    grade: 0xd2f0ff,
   },
   underworld: {
     sky: { top: 0x050102, bottom: 0x2a0806, glow: 0x7a1a08, fog: 0x120404, fogDensity: 0.024 },
@@ -52,6 +55,7 @@ const PRESETS: Record<RealmId, Preset> = {
     hemi: { sky: 0x4a1a10, ground: 0x200404, intensity: 0.7 },
     envIntensity: 0.5, floorRadius: 0,
     motes: { color: 0xff7a2a, rise: 0.55, size: 1.2, opacity: 0.9 },
+    grade: 0xffd2c0,
   },
 };
 
@@ -94,6 +98,7 @@ export class Realm {
     s.scene.environmentIntensity = p.envIntensity;
     s.setFloorRadius(p.floorRadius);
     s.setMotes(p.motes.color, p.motes.rise, p.motes.size, p.motes.opacity);
+    s.setGrade(p.grade);
     let model = this.cache.get(id);
     if (!model) {
       this.files ??= fetch(`${this.base}arena.json`).then((r) => (r.ok ? r.json() : null)).then((m: { realms?: Partial<Record<RealmId, string>> } | null) => m?.realms ?? {}, () => ({}));

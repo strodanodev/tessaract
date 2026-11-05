@@ -18,8 +18,10 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 export type Mood = 'menu' | 'battle';
@@ -38,6 +40,10 @@ export class Stage {
   readonly floorPlate: THREE.Mesh<THREE.CircleGeometry, THREE.MeshStandardMaterial>;
   private readonly composer: EffectComposer;
   private readonly bloom: UnrealBloomPass;
+  /** Ground-contact shading (desktop only, half resolution): props and units sit in the floor instead of on it. */
+  private readonly gtao: GTAOPass | null;
+  /** The last pass: a vignette, the realm's tint in the shadows, and fine grain. */
+  private readonly grade: ShaderPass;
   private readonly sky: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial>;
   private readonly motes: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
   private readonly shadows: boolean;
@@ -123,10 +129,32 @@ export class Stage {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
+    this.gtao = opts.coarse ? null : new GTAOPass(this.scene, this.camera, 256, 256);
+    if (this.gtao) {
+      this.gtao.updateGtaoMaterial({ radius: 0.9, distanceFallOff: 1, thickness: 1.2, samples: 12 });
+      this.gtao.updatePdMaterial({ samples: 8, radius: 6 });
+      this.gtao.blendIntensity = 0.85;
+      this.composer.addPass(this.gtao);
+    }
     // bloom only on what is really hot (fire, runes, lava): the threshold keeps stone and gold crisp
     this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.45, 0.4, 1.0);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
+    // grading after tone mapping, in display space: the shadows take the realm's hue, the edges fall away, a fine grain
+    this.grade = new ShaderPass({
+      uniforms: { tDiffuse: { value: null }, tint: { value: new THREE.Color(1, 1, 1) }, vig: { value: 0.32 }, grain: { value: 0.025 }, time: { value: 0 } },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: `uniform sampler2D tDiffuse; uniform vec3 tint; uniform float vig, grain, time; varying vec2 vUv;
+        void main(){ vec4 c = texture2D(tDiffuse, vUv);
+          float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
+          c.rgb = mix(c.rgb, c.rgb * tint, (1.0 - smoothstep(0.0, 0.45, l)) * 0.7);
+          vec2 d = (vUv - 0.5) * vec2(1.0, 0.85);
+          c.rgb *= mix(1.0 - vig, 1.0, smoothstep(0.78, 0.22, length(d)));
+          float n = fract(sin(dot(vUv * 731.0 + fract(time) * 17.0, vec2(12.9898, 78.233))) * 43758.5453);
+          c.rgb += (n - 0.5) * grain;
+          gl_FragColor = c; }`,
+    });
+    this.composer.addPass(this.grade);
 
     this.camera.position.set(0, 8.2, 12.6);
     this.setSize(opts.width, opts.height, opts.dpr);
@@ -229,6 +257,9 @@ export class Stage {
     this.stars.visible = stars > 0;
   }
 
+  /** The realm's grade: the hue its shadows take. */
+  setGrade(tint: number): void { (this.grade.uniforms.tint.value as THREE.Color).set(tint); }
+
   setFloorRadius(r: number): void {
     this.floorPlate.visible = r > 0;
     if (r > 0) { this.floorPlate.geometry.dispose(); this.floorPlate.geometry = new THREE.CircleGeometry(r, 64); }
@@ -251,6 +282,8 @@ export class Stage {
     this.composer.setPixelRatio(ratio);
     this.composer.setSize(w, h);
     this.bloom.resolution.set(w / 2, h / 2);
+    // ambient occlusion at half resolution: soft contact shading needs no more, and it halves the cost
+    this.gtao?.setSize(Math.max(1, Math.round((w * ratio) / 2)), Math.max(1, Math.round((h * ratio) / 2)));
     this.camera.aspect = w / h;
     // portrait phones: open the field of view so the arena still fills the frame
     this.camera.fov = this.camera.aspect < 1 ? Math.min(72, 42 / this.camera.aspect) : 42;
@@ -315,6 +348,7 @@ export class Stage {
       this.motes.material.uniforms.time.value = t;
       for (const fn of this.updaters) fn(dt, t);
       this.place(dt, t);
+      this.grade.uniforms.time.value = t;
       this.composer.render(dt);
       this.workMs += performance.now() - t0;
       const info = this.renderer.info.render;
