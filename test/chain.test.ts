@@ -108,7 +108,11 @@ test('relay: champion stats come from the chain, and owned-only decks reject car
     assert.equal((await alice.next('reject')).reason, 'not in your wallet');
     alice.send({ t: 'act', x: declare(OWNED.i) });
     const entry = (await alice.next('entry')).entry as { inputs: number[] };
-    assert.equal(entry.inputs[0], declare(OWNED.i));
+    // seats follow the order the hellos arrive, and both sockets open at once: read alice's seat, don't assume seat 0
+    const aliceSeat = (start.participants as string[]).indexOf('alice');
+    assert.ok(aliceSeat >= 0, 'alice is seated');
+    assert.equal(entry.inputs[aliceSeat], declare(OWNED.i));
+    assert.equal(entry.inputs[1 - aliceSeat], 0, "bob's input is empty");
     bob.send({ t: 'act', x: declare(OWNED.i) });
     assert.equal((await bob.next('reject')).reason, 'not in your wallet');
     alice.ws.close(); bob.ws.close();
