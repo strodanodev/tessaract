@@ -2,6 +2,34 @@
 
 Every rules or card change ships under a new `rulesetId`, so a game built on an older Deckwright keeps replaying exactly as it did.
 
+## 0.9.8 (2026-11-06): the battle look, statues and an art pass
+
+No rules change: every ruleset replays exactly as before.
+
+- **The battle table:**
+  - the board is a tilted 3D table, with slots lying flat and units standing up;
+  - units fill from the centre, and a glowing rune circle (`ui/runes.js`) rings the table, sharing its outline at every size;
+  - slots are red on the enemy's side and blue on yours, and the table has a carved stone surface with a centre medallion;
+  - the player plates are steel-framed stone with a blue life gem for you, hero powers glow in their element's colour, and a bronze gear sits behind End turn;
+  - the battle camera is steeper, with the table at a 26° tilt.
+- **The 3D arena:**
+  - games may stand statues round the arena: `assets/arena/statues.json` lists GLBs and a ring per realm. They're skipped on phones;
+  - Valhalla gets a stepped octagonal stone rim round the dais and cooler, teal light;
+  - the stone gets carved relief, which fades out at a distance so it doesn't flicker;
+  - Underworld crystals are glossy, faceted and ember red, its lava flows down the falls, and its ember bands glow deep orange;
+  - the title camera sits lower and looks across the arena.
+- **Cards and pages:**
+  - spell and relic art shows an emblem for what the card does, and relics set it in a hex socket;
+  - gems, badges and stat tiles use Inter with tabular figures, so 11 no longer reads as "II";
+  - long card names step down a size instead of being cut off;
+  - before a run, the Gauntlet shows shadowed, day-seeded foes, and champion portraits shimmer while they load.
+- **Readability and phones:**
+  - the narration has a backing, and enemy attacks read "their X";
+  - the hand fan stays on screen, and stats with small ranges show as pips;
+  - on phones, units fit their frame and the hand fades at the edge to show it scrolls;
+  - replays use a smaller hand, and champion select hides the big card on screens 700px tall or less.
+- **Arena cost:** about 1.3–1.8 ms a frame on a GPU, with no main-thread blocking.
+
 ## 0.9.7 (2026-10-25): the battle layout, rebuilt
 
 No rules change: every ruleset replays exactly as before.
