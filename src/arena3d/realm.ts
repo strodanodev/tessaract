@@ -69,6 +69,10 @@ export class Realm {
   private fires: THREE.MeshStandardMaterial[] = [];
   /** Statues and the dais rim, rebuilt for each realm. */
   private readonly dressing = new THREE.Group();
+  /** The battle table: fitted under the HTML board in battle (see fitTable), a smaller centrepiece on the title. */
+  private table: THREE.Group | null = null;
+  private readonly ray = new THREE.Raycaster();
+  private readonly tablePlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -TABLE_TOP);
   private statues: Promise<{ manifest: StatueManifest; models: THREE.Object3D[] } | null> | null = null;
   private files: Promise<Partial<Record<RealmId, string>>> | null = null;
   id: RealmId | null = null;
@@ -132,7 +136,8 @@ export class Realm {
     if (p.floorRadius > 0) this.dressing.add(daisRim(p.floorRadius, stone(id === 'valhalla' ? 0x56565a : 0x3a3034)));
     // the battle table: a carved stone slab on a pedestal at the centre of the dais, gilt-edged; the HTML board lies
     // over it in battle, and on the title it is the arena's centrepiece
-    this.dressing.add(battleTable(stone(id === 'valhalla' ? 0x3c5a60 : 0x4a2e2a), stone(id === 'valhalla' ? 0x2c2c32 : 0x231a1c), id === 'valhalla' ? 0x7fe6ff : 0xff6a2a));
+    this.table = battleTable(stone(id === 'valhalla' ? 0x3c5a60 : 0x4a2e2a), stone(id === 'valhalla' ? 0x2c2c32 : 0x231a1c), id === 'valhalla' ? 0x7fe6ff : 0xff6a2a);
+    this.dressing.add(this.table);
     const found = this.stage.coarse ? null : await this.loadStatues();
     const ring = found?.manifest.realms?.[id];
     if (found && ring && this.id === id) {
@@ -189,10 +194,10 @@ export class Realm {
     if (/fire|ember/.test(n)) {
       const m = src.clone();
       // fire flickers hot; the spires' ember bands only smoulder (at fire's heat, bloom turns them into white bars)
-      m.userData.heat = /fire/.test(n) ? 3.0 : 1.6;
+      m.userData.heat = /fire/.test(n) ? 3.0 : 2.6;
       m.emissiveIntensity = m.userData.heat;
       m.color.set(0x1a0805);
-      if (!/fire/.test(n)) m.emissive.set(0xff4a12);   // embers glow a deep orange, not the source's pale gold
+      if (!/fire/.test(n)) m.emissive.set(0xff6a1a);   // embers glow a hot orange, not the source's pale gold
       fires.push(m);
       return m;
     }
@@ -222,12 +227,41 @@ export class Realm {
     return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x4a443c : 0x2a2226, roughness: 0.92, metalness: 0.05, envMapIntensity: 0.35 }), 1.8, 0.5, 0.45, 0.55);
   }
 
-  private update(_dt: number, t: number): void {
+  /**
+   * Fit the table under the HTML board: cast rays through the middle of each edge of the board's box on screen onto
+   * the table-top plane, and scale and move the table to that footprint, so the stone lies exactly under the board at
+   * any viewport. Without a board (the title), it is a smaller centrepiece. Eased, so layout changes glide.
+   */
+  private fitTable(dt: number): void {
+    if (!this.table) return;
+    const s = this.stage, b = s.inBattle ? s.board : null;
+    let sx = 0.7, sz = 0.7, px = 0, pz = 0;
+    if (b && b.w > 0 && b.h > 0) {
+      const hit = (x: number, y: number): THREE.Vector3 | null => {
+        this.ray.setFromCamera(s.toNdc(x, y), s.camera);
+        return this.ray.ray.intersectPlane(this.tablePlane, new THREE.Vector3());
+      };
+      const l = hit(b.x, b.y + b.h / 2), r = hit(b.x + b.w, b.y + b.h / 2), top = hit(b.x + b.w / 2, b.y), bot = hit(b.x + b.w / 2, b.y + b.h);
+      if (!l || !r || !top || !bot) return;
+      sx = (Math.abs(r.x - l.x) / TABLE_L) * 1.03;   // a hair larger: the gilt band frames the board's edge
+      sz = (Math.abs(bot.z - top.z) / TABLE_D) * 1.03;
+      px = (l.x + r.x) / 2; pz = (top.z + bot.z) / 2;
+    }
+    const k = Math.min(1, dt * 6), T = this.table;
+    T.scale.x += (sx - T.scale.x) * k; T.scale.z += (sz - T.scale.z) * k;
+    T.position.x += (px - T.position.x) * k; T.position.z += (pz - T.position.z) * k;
+  }
+
+  private update(dt: number, t: number): void {
+    this.fitTable(dt);
     const fog = this.stage.scene.fog as THREE.FogExp2;
     for (const m of this.animated) { m.uniforms.time.value = t; (m.uniforms.fogColor.value as THREE.Color).copy(fog.color); m.uniforms.fogDensity.value = fog.density; }
     for (let i = 0; i < this.fires.length; i++) { const heat = this.fires[i].userData.heat ?? 3.0; this.fires[i].emissiveIntensity = heat * (1 + 0.27 * Math.sin(t * 7 + i * 1.7) * Math.sin(t * 3.1 + i)); }
   }
 }
+
+/** The battle table's size (m) before it is fitted, and the height of its top. */
+const TABLE_L = 15, TABLE_D = 7.6, TABLE_TOP = 0.74;
 
 /** A stadium outline (a rectangle whose short ends are half circles), length along x, as a three.js Shape. */
 function stadiumShape(length: number, depth: number): THREE.Shape {
@@ -257,7 +291,7 @@ function slab(shape: THREE.Shape, height: number, bottom: number, mat: THREE.Mat
 function battleTable(top: THREE.Material, base: THREE.Material, glow: number): THREE.Group {
   const g = new THREE.Group();
   // a little larger than the HTML board laid over it, so its stone and gilt edge frame the board as its base
-  const L = 15, D = 7.6;
+  const L = TABLE_L, D = TABLE_D;
   g.add(slab(stadiumShape(L * 0.72, D * 0.55), 0.6, -0.2, base, 0.08));
   g.add(slab(stadiumShape(L, D), 0.34, 0.4, top, 0.07));
   const band = stadiumShape(L + 0.24, D + 0.24);

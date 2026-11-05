@@ -32,6 +32,8 @@
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.42)); box-shadow: inset 0 0 0 1px rgba(255, 214, 140, 0.13); }
 .tc-text:empty { visibility: hidden; }
 .tc-text .kw { color: var(--gold-1); font-weight: 700; }
+.tc-text.long { font-size: 0.9em; line-height: 1.16; }
+.tc-text.xlong { font-size: 0.8em; line-height: 1.12; }
 .tc-text .trig { color: color-mix(in srgb, var(--el) 55%, white); font-weight: 600; }
 .tc-text p { margin: 0; }
 .tc-cost, .tc-atk, .tc-hp { position: absolute; z-index: 3; display: grid; place-items: center; width: 2.6em; height: 2.6em; font-family: var(--font-display); font-weight: 700; font-size: 1.3em; color: #fff; text-shadow: 0 1px 3px #000; }

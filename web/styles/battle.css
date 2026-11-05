@@ -137,7 +137,7 @@
 /* The hand sits whole along the bottom edge, fanned; a card lifts and grows when you point at it. */
 .hand { --w: clamp(96px, 18vh, 146px); display: flex; justify-content: center; align-items: flex-start; height: calc(var(--w) * 1.4 + 34px); max-width: 100%; padding: 0 16px; margin-bottom: calc(var(--safe-b) * -1); perspective: 1000px; }
 /* no overlap while the hand fits beside the end-turn medallion; past that, only as much as it must (stats stay clear) */
-.hand .tcard { --w: inherit; margin-left: clamp(calc(var(--w) * -0.34), calc((min(100vw, 1180px) - 320px - var(--n, 1) * var(--w)) / max(var(--n, 1) - 1, 1)), 8px); transform-origin: 50% 120%; transform: rotate(calc(var(--i, 0) * 1.8deg)) translateY(calc(var(--i, 0) * var(--i, 0) * 1px)); animation: dealIn 0.45s var(--ease-out) both; }
+.hand .tcard { --w: inherit; margin-left: clamp(calc(var(--w) * -0.24), calc((min(100vw, 1180px) - 320px - var(--n, 1) * var(--w)) / max(var(--n, 1) - 1, 1)), 8px); transform-origin: 50% 120%; transform: rotate(calc(var(--i, 0) * 1.8deg)) translateY(calc(var(--i, 0) * var(--i, 0) * 1px)); animation: dealIn 0.45s var(--ease-out) both; }
 .hand .tcard:first-child { margin-left: 0; }
 @keyframes dealIn { from { opacity: 0; transform: translateY(60px) rotate(0); } }
 .hand .tcard.can { box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55), 0 0 0 2px var(--ok), 0 0 18px rgba(99, 227, 145, 0.55); }

@@ -3,7 +3,8 @@
  * three.js, the model parse, shader compiles and every frame stay off the main thread and never stall the menus or
  * the battle. Bundled by scripts/build-arena3d.mjs into web/arena3d.js; web/ui/arena.js starts it.
  *
- * Page → worker: init { canvas, width, height, dpr, coarse, still, base, realm, mood }, size, realm, mood, quake, visible.
+ * Page → worker: init { canvas, width, height, dpr, coarse, still, base, realm, mood }, size, realm, mood, quake, visible,
+ *   board { rect } (the battle board's box on screen, CSS px, or null).
  * Worker → page: ready { gpu, ms }, failed { reason }, tooSlow, stats { fps, frameMs, drawCalls, triangles, pixelRatio }.
  */
 import { Realm, type RealmId } from './realm';
@@ -15,6 +16,7 @@ type In =
   | { type: 'realm'; id: RealmId }
   | { type: 'mood'; mood: Mood }
   | { type: 'quake' }
+  | { type: 'board'; rect: { x: number; y: number; w: number; h: number } | null }
   | { type: 'visible'; visible: boolean };
 
 const post = (m: unknown): void => (self as unknown as Worker).postMessage(m);
@@ -50,5 +52,6 @@ self.onmessage = (e: MessageEvent<In>): void => {
   else if (m.type === 'realm') void realm?.load(m.id);
   else if (m.type === 'mood') stage.setMood(m.mood);
   else if (m.type === 'quake') stage.quake();
+  else if (m.type === 'board') stage.board = m.rect;
   else if (m.type === 'visible') stage.hidden = !m.visible;
 };

@@ -61,7 +61,8 @@ export function createCards(app) {
         artBox(def, "tc-art"),
         h("div", { class: def.name.length > 12 ? "tc-name long" : "tc-name", text: def.name }),
         h("div", { class: "tc-type", text: typeLine(def) }),
-        h("div", { class: "tc-text" }, ...text.map((t) => h("p", null, ...richLine(t))))),
+        // long rules text steps down a size or two rather than clipping ("…the enemy champio")
+        h("div", { class: `tc-text${text.join(" ").length > 52 ? " xlong" : text.join(" ").length > 34 ? " long" : ""}` }, ...text.map((t) => h("p", null, ...richLine(t))))),
       h("span", { class: "tc-cost tabnum", text: cost }),
       def.type === "unit" ? h("span", { class: "tc-atk tabnum", text: def.attack }) : null,
       def.type === "unit" ? h("span", { class: "tc-hp tabnum", text: def.health }) : null,

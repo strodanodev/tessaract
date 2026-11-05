@@ -47,7 +47,7 @@ export class Stage {
   private readonly timer = new THREE.Timer();
   private readonly updaters: Array<(dt: number, t: number) => void> = [];
   /** The title camera looks across the arena (statues, pillars, the far rim), not down into the dais. */
-  private readonly menuTarget = new THREE.Vector3(0, 2.2, 0);
+  private readonly menuTarget = new THREE.Vector3(0, 2.8, 0);
   /** In battle the camera aims 2.1 m in front of the table, so the table sits under the HTML board (above mid-screen). */
   private readonly battleTarget = new THREE.Vector3(0, 0.35, 2.1);
   private readonly battleSpot = new THREE.Vector3();
@@ -64,6 +64,8 @@ export class Stage {
   private width = 1;
   private height = 1;
   private dpr = 1;
+  /** The battle board's box on screen (CSS px), from the page: the realm fits the 3D table under it. */
+  board: { x: number; y: number; w: number; h: number } | null = null;
   /** The page is hidden: draw nothing. */
   hidden = false;
   /** Called when even the lowest resolution can't hold the frame rate: the client drops back to the CSS arena. */
@@ -237,6 +239,9 @@ export class Stage {
   quake(): void { this.shakeLeft = 0.3; }
   onUpdate(fn: (dt: number, t: number) => void): void { this.updaters.push(fn); }
   getStats(): StageStats { return { ...this.stats }; }
+  get inBattle(): boolean { return this.mood === 'battle'; }
+  /** A point on screen (CSS px) to normalised device coordinates. */
+  toNdc(x: number, y: number): THREE.Vector2 { return new THREE.Vector2((x / this.width) * 2 - 1, -((y / this.height) * 2 - 1)); }
 
   private resize(): void {
     const w = this.width, h = this.height;
@@ -260,7 +265,8 @@ export class Stage {
   private place(dt: number, t: number): void {
     if (this.mood === 'menu') {
       if (!this.still) this.angle += dt * 0.06;
-      const r = 12.6, y = (this.camera.aspect > 1.25 ? 5.4 : 5.0) + Math.sin(this.angle * 0.7) * 0.5;
+      // low, so the statues, spires and sky fill the frame rather than the table top
+      const r = 12.6, y = (this.camera.aspect > 1.25 ? 4.0 : 4.4) + Math.sin(this.angle * 0.7) * 0.4;
       this.camera.position.set(Math.sin(this.angle) * r, y, Math.cos(this.angle) * r);
     } else {
       // steep, so the dais under the HTML table is seen nearly as the table is (it tilts 26deg on screen)

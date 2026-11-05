@@ -88,6 +88,15 @@ export function matchScreen(app) {
   };
   const board = h("div", { class: "battlefield" }, mat, foeLane, h("div", { class: "lane-line" }), myLane);
   const ring = runeRing(mat, () => [laneRect(foeLane), laneRect(myLane)]);
+  // tell the 3D arena where the board's mat is on screen, so its stone table lies exactly under it (only on change)
+  let lastBoard = "";
+  const fitBoard = () => {
+    const r = mat.getBoundingClientRect(), key = `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}`;
+    if (key === lastBoard || !r.width) return;
+    lastBoard = key;
+    app.arena.setBoard(r);
+  };
+  addEventListener("resize", () => requestAnimationFrame(fitBoard));
   const el = h("section", { class: "match", aria: { label: "Battle" } },
     fx, foeP.el, h("div", { class: "hud-center" }, medallion, status), board, meP.el, hand, dock, feed, cine, viewbar, result.el);
 
@@ -363,7 +372,7 @@ export function matchScreen(app) {
     }));
     hand.style.setProperty("--n", String(n));
     el.classList.toggle("aiming", !!pick);
-    requestAnimationFrame(ring.refresh);   // the rune circle keeps clear of the lanes as they lay out
+    requestAnimationFrame(() => { ring.refresh(); fitBoard(); });   // after layout: the rune circle and the 3D table
 
     endBtn.disabled = !myTurn;
     endBtn.classList.toggle("ready", myTurn && !moves.some((m) => m.op !== Op.End));
@@ -436,7 +445,7 @@ export function matchScreen(app) {
     render,
     /** Retry a puzzle in place. */
     retry() { result.hide(); finishedOnce = false; prev = null; recent = []; tally = { dealt: 0, taken: 0, played: 0, kills: 0 }; session.retry(); },
-    enter() { app.arena.setMood("battle"); stagger(hand); },
+    enter() { app.arena.setMood("battle"); lastBoard = ""; stagger(hand); },   // resend the board: the 3D arena may have started since
     toast,
   };
 }

@@ -89,6 +89,8 @@ export function createArena(root) {
     /** "menu" shows the level in full; "battle" dims it behind the board. */
     setMood(mood) { api.mood = mood; root.dataset.mood = mood; three?.setMood(mood); },
     quake() { root.classList.remove("quake"); void root.offsetWidth; root.classList.add("quake"); three?.quake(); },
+    /** The battle board's box on screen (a DOMRect, or null): the 3D table is fitted under it. */
+    setBoard(rect) { three?.setBoard(rect ? { x: rect.x, y: rect.y, w: rect.width, h: rect.height } : null); },
     /** Frame rate, resolution and draw calls of the 3D arena, or null while the CSS arena is showing. */
     stats: () => three?.stats() ?? null,
     upgrade: () => upgrade(),
@@ -145,6 +147,7 @@ export function createArena(root) {
         setRealm: (id) => worker.postMessage({ type: "realm", id }),
         setMood: (mood) => worker.postMessage({ type: "mood", mood }),
         quake: () => worker.postMessage({ type: "quake" }),
+        setBoard: (rect) => worker.postMessage({ type: "board", rect }),
         stats: () => (lastStats ? { ...lastStats, gpu: info.gpu, setupMs: info.ms } : { gpu: info.gpu, setupMs: info.ms }),
         dispose: stop,
       };
