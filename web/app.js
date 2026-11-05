@@ -301,7 +301,7 @@ app.flows = {
     const sub = puzzleState
       ? (puzzleState === "solved" ? `${session.actions} actions. The bot needed ${session.puzzle.par}.` : "Your turn ended without a win. Try another line.")
       : conceded ? (watching ? `${name(s.p[s.winner === 0 ? 1 : 0].id)} conceded` : s.winner === meIdx ? "Your opponent conceded" : "You conceded")
-      : `${watching ? `${name(me.id)} ${me.life} life · ${name(foe.id)} ${foe.life} life` : `${me.life} life left`}${kind === "relay" && !watching ? ` · ${session.status}` : ""}${kind === "gauntlet" ? ` · ${context.detail}` : ""}`;
+      : `${watching ? `${name(me.id)} ${Math.max(0, me.life)} life · ${name(foe.id)} ${Math.max(0, foe.life)} life` : `${Math.max(0, me.life)} life left`}${kind === "relay" && !watching ? ` · ${session.status}` : ""}${kind === "gauntlet" ? ` · ${context.detail}` : ""}`;
     const watchReplay = { text: "Watch replay", icon: "replay", onClick: async () => { const rec = session.record(); const code = await encodeRecord(rec); history.replaceState(null, "", `${location.pathname}${location.search}#${REPLAY_PARAM}=${code}`); await startReplay(rec, code); } };
     const menu = { text: "Menu", icon: "back", link: true, onClick: () => void app.flows.leaveMatch() };
     let buttons;

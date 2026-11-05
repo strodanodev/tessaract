@@ -259,7 +259,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .stage.next .st-face img { filter: none; }
 .stage.lost .st-face { border-color: var(--danger); }
 .stage.lost .st-face img { filter: grayscale(0.4) brightness(0.55) sepia(0.6) hue-rotate(-30deg) saturate(2); }
-.road.preview .st-face img { filter: grayscale(1) brightness(0.32) contrast(1.2); }
+.road.preview .st-face img { filter: grayscale(1) brightness(0.5) contrast(1.15); }
 .road.preview .stage:last-child .st-face { border-color: var(--gold-3); }
 .st-mark { position: absolute; right: 6px; top: 6px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: #241604; background: radial-gradient(circle at 50% 30%, #ffe7a8, #c98a28 75%); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
 .st-mark svg { width: 14px; height: 14px; }
@@ -306,8 +306,8 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .champ-records img, .champ-records svg { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line-strong); }
 .champ-records b { font-family: var(--font-display); color: var(--gold-1); }
 @media (max-width: 760px) {
-  .road { display: flex; overflow-x: auto; scrollbar-width: none; padding: 10px 4px 4px; mask-image: linear-gradient(90deg, #000 84%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 84%, transparent); }
-  .stage { flex: 0 0 78px; }
+  /* all eight foes, in two rows of four */
+  .road { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 10px; padding: 10px 4px 4px; }
   /* phone: the card and the name side by side, the tiles across the full width under them */
   .profile-hero { grid-template-columns: 84px minmax(0, 1fr); gap: 6px 14px; padding: 14px; align-items: start; }
   .ph-body { display: contents; }

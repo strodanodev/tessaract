@@ -63,6 +63,9 @@ button.tcard:disabled { cursor: default; filter: saturate(0.4) brightness(0.6); 
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.7); }
 .u-art { position: relative; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; display: grid; place-items: center; color: var(--el); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--el) 45%, #1a1420), #0a080d 75%); }
 .u-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+/* a rendered illustration on a small token: centred and drawn in, so the emblem (a helm, a crystal) reads */
+.u-art img.render { object-position: 50% 48%; transform: scale(1.45); }
+.tc-art img.render { object-position: 50% 45%; }
 .u-art .glyph { width: 58%; height: 58%; filter: drop-shadow(0 0 10px currentColor); }
 .u-atk, .u-hp { position: absolute; bottom: 0; z-index: 2; display: grid; place-items: center; width: clamp(24px, calc(var(--u, 84px) * 0.3), 38px); height: clamp(24px, calc(var(--u, 84px) * 0.3), 38px); font-family: var(--font-display); font-weight: 700; font-size: clamp(12px, calc(var(--u, 84px) * 0.15), 19px); color: #fff; text-shadow: 0 1px 3px #000; }
 .u-atk { left: -4px; clip-path: polygon(50% 0, 100% 30%, 82% 100%, 18% 100%, 0 30%); background: radial-gradient(circle at 40% 30%, #ffe2a0, #d9982f 50%, #6a4010 90%); }

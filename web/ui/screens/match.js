@@ -31,6 +31,8 @@ export function matchScreen(app) {
   const foeLane = h("div", { class: "lane foe-lane", aria: { label: "Opponent units" } });
   const myLane = h("div", { class: "lane my-lane", aria: { label: "Your units" } });
   const hand = h("div", { class: "hand", aria: { label: "Your hand" } });
+  // phones show only card names in the hand: this strip reads out the picked card's rules (styled for phones only)
+  const pickInfo = h("p", { class: "pick-info", aria: { live: "polite" } });
   const endBtn = h("button", { class: "end-turn", type: "button", on: { click: () => act(endTurn()) } }, h("span", { class: "et-ring" }), h("span", { class: "et-label display", text: "End turn" }));
   const menuBtn = h("button", { class: "icon-btn", type: "button", title: "Battle menu (Esc)", aria: { label: "Battle menu" }, on: { click: () => openMenu() } }, icon("menu"));
   const dock = h("div", { class: "dock" }, h("i", { class: "et-gear", aria: { hidden: "true" } }), menuBtn, endBtn);
@@ -98,7 +100,7 @@ export function matchScreen(app) {
   };
   addEventListener("resize", () => requestAnimationFrame(fitBoard));
   const el = h("section", { class: "match", aria: { label: "Battle" } },
-    fx, foeP.el, h("div", { class: "hud-center" }, medallion, status), board, meP.el, hand, dock, feed, cine, viewbar, result.el);
+    fx, foeP.el, h("div", { class: "hud-center" }, medallion, status), board, meP.el, pickInfo, hand, dock, feed, cine, viewbar, result.el);
 
   // ------------------------------------------------------------------ battle menu
   let menu = null;
@@ -372,6 +374,11 @@ export function matchScreen(app) {
     }));
     hand.style.setProperty("--n", String(n));
     el.classList.toggle("aiming", !!pick);
+    const picked = pick?.kind === "hand" ? game.cards[me.hand[pick.index]] : null;
+    if (picked) {
+      const lines = app.cards.describe(picked);
+      pickInfo.replaceChildren(h("b", { text: picked.name }), lines.length ? ` · ${lines.join(" · ")}` : "");
+    } else pickInfo.textContent = watching ? "" : "Tap a card to play it · hold it to read it";
     requestAnimationFrame(() => { ring.refresh(); fitBoard(); });   // after layout: the rune circle and the 3D table
 
     endBtn.disabled = !myTurn;

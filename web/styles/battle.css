@@ -146,6 +146,7 @@
 .hand .tcard.picked { z-index: 6; transform: translateY(calc(var(--w) * -0.28)) scale(1.12); box-shadow: 0 22px 40px rgba(0, 0, 0, 0.6), 0 0 0 3px var(--gold-0), 0 0 34px rgba(255, 201, 94, 0.85); }
 
 /* ------------------------------------------------------------------ the dock: the end-turn medallion and the menu */
+.pick-info { display: none; }
 .dock { position: absolute !important; right: calc(var(--safe-r) + 46px); bottom: calc(var(--safe-b) + 34%); display: grid; justify-items: center; gap: 14px; }
 .et-gear { position: absolute; right: -36px; bottom: -36px; width: 176px; height: 176px; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23d9ad62'/%3E%3Cstop offset='.45' stop-color='%237a5424'/%3E%3Cstop offset='1' stop-color='%23b0803c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M91.0 50.0L98.9 52.4L98.3 58.5L90.0 59.1L86.9 67.8L93.0 73.4L89.8 78.6L82.1 75.6L75.6 82.1L78.6 89.8L73.4 93.0L67.8 86.9L59.1 90.0L58.5 98.3L52.4 98.9L50.0 91.0L40.9 90.0L36.7 97.2L31.0 95.2L32.2 86.9L24.4 82.1L17.6 86.7L13.3 82.4L17.9 75.6L13.1 67.8L4.8 69.0L2.8 63.3L10.0 59.1L9.0 50.0L1.1 47.6L1.7 41.5L10.0 40.9L13.1 32.2L7.0 26.6L10.2 21.4L17.9 24.4L24.4 17.9L21.4 10.2L26.6 7.0L32.2 13.1L40.9 10.0L41.5 1.7L47.6 1.1L50.0 9.0L59.1 10.0L63.3 2.8L69.0 4.8L67.8 13.1L75.6 17.9L82.4 13.3L86.7 17.6L82.1 24.4L86.9 32.2L95.2 31.0L97.2 36.7L90.0 40.9Z' fill='url(%23b)' stroke='%232a1a08' stroke-width='1.2'/%3E%3Ccircle cx='50' cy='50' r='33' fill='%231a1208' opacity='.85'/%3E%3Cg fill='url(%23b)'%3E%3Crect x='47' y='14' width='6' height='24' rx='2' transform='rotate(0 50 50)'/%3E%3Crect x='47' y='14' width='6' height='24' rx='2' transform='rotate(60 50 50)'/%3E%3Crect x='47' y='14' width='6' height='24' rx='2' transform='rotate(120 50 50)'/%3E%3Crect x='47' y='14' width='6' height='24' rx='2' transform='rotate(180 50 50)'/%3E%3Crect x='47' y='14' width='6' height='24' rx='2' transform='rotate(240 50 50)'/%3E%3Crect x='47' y='14' width='6' height='24' rx='2' transform='rotate(300 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='15' fill='url(%23b)' stroke='%232a1a08' stroke-width='1.2'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23e8c27a' stroke-opacity='.35' stroke-width='.8'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.65)); animation: spin 48s linear infinite; }
 .dock:has(.end-turn.ready) .et-gear { animation-duration: 14s; }
@@ -315,6 +316,10 @@
   .lane { --u: max(40px, min(var(--u-max), calc((50cqh - 26px) / 1.22), calc((100cqw - 52px) / 5))); }
   .battlefield { --ring: 0px; }
   .hand { mask-image: linear-gradient(90deg, #000 86%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 86%, transparent); }
+  .pick-info { display: block; margin: 2px 8px 0; padding: 6px 10px; min-height: 1.3em; border-radius: 3px; border-left: 2px solid var(--gold-2); background: rgba(8, 6, 12, 0.82); font-size: 12.5px; line-height: 1.35; color: #e6dccb; text-align: center; }
+  .pick-info b { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.04em; color: var(--gold-1); }
+  .pick-info:empty { display: none; }
+  .match.viewing .pick-info { display: none; }
   .match.viewing .hand .tcard { --w: 88px; }
   .battlefield { --tilt: 14deg; }
   .et-gear { display: none; }

@@ -50,7 +50,8 @@ export function createCards(app) {
   const typeLine = (def) => [def.type === "unit" ? def.kind ?? "Unit" : def.type === "spell" ? "Spell" : "Relic", def.element && def.element !== "neutral" ? elementName(def.element) : null].filter(Boolean).join(" · ");
   const artBox = (def, cls) => {
     const art = app.artOf(def);
-    return h("div", { class: cls }, art ? h("img", { src: art, alt: "", loading: "lazy", decoding: "async", draggable: false }) : sigil(def));
+    // rendered illustrations (assets/cards) are framed on their centre; NFT busts on the head
+    return h("div", { class: cls }, art ? h("img", { src: art, alt: "", loading: "lazy", decoding: "async", draggable: false, class: art.includes("/assets/cards/") ? "render" : null }) : sigil(def));
   };
 
   /** A full card. `tag` "button" makes it clickable; `small` is the relic size. */
