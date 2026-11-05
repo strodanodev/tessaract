@@ -17,7 +17,8 @@ No rules change: every ruleset replays exactly as before.
 - **Light and post:**
   - ambient occlusion (GTAO, half resolution, desktop only);
   - a final grade with a per-realm shadow tint, vignette and grain;
-  - embers glow hotter, and the title camera sits lower.
+  - embers glow hotter, and the title camera sits lower;
+  - the battle camera is lower and further back: a three-quarter view of the arena round the table.
 - **Cards and hand:** long rules text steps down a size, and a fanned hand overlaps less.
 - **Arena cost:** about 2.5–3.2 ms a frame on a GPU, with no main-thread blocking. The arena bundle is 183 KB gzipped.
 
