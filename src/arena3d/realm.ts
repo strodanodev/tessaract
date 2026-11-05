@@ -3,6 +3,9 @@
  * and the Underworld (the Horde's basalt crater with a lava moat). Each is a Blender-built arena GLB plus a sky, fog
  * and lighting preset, and a couple of animated materials (flowing lava, flickering fire).
  *
+ * A game names its arena files in assets/arena/arena.json ({ realms: { valhalla: "valhalla.2.glb", ... } }), so a
+ * rebuilt arena can ship under a new name past a long-lived asset cache; without it, the file is <realm>.glb.
+ *
  * A game may also stand statues round the arena: assets/arena/statues.json lists GLBs (in statues/) and a ring per
  * realm ({ files: [...], realms: { valhalla: { radius, height, offset?, ground? } } }: ground is the floor's height there). They stand on plinths facing the table,
  * in the realm's weathered stone, and skip phones. Valhalla's dais also gets a raised, stepped octagonal rim.
@@ -67,6 +70,7 @@ export class Realm {
   /** Statues and the dais rim, rebuilt for each realm. */
   private readonly dressing = new THREE.Group();
   private statues: Promise<{ manifest: StatueManifest; models: THREE.Object3D[] } | null> | null = null;
+  private files: Promise<Partial<Record<RealmId, string>>> | null = null;
   id: RealmId | null = null;
 
   constructor(private readonly stage: Stage, private readonly base: string) {
@@ -88,7 +92,8 @@ export class Realm {
     s.setMotes(p.motes.color, p.motes.rise, p.motes.size, p.motes.opacity);
     let model = this.cache.get(id);
     if (!model) {
-      model = this.loader.loadAsync(`${this.base}${id}.glb`).then(async (g) => {
+      this.files ??= fetch(`${this.base}arena.json`).then((r) => (r.ok ? r.json() : null)).then((m: { realms?: Partial<Record<RealmId, string>> } | null) => m?.realms ?? {}, () => ({}));
+      model = this.files.then((files) => this.loader.loadAsync(`${this.base}${files[id] ?? `${id}.glb`}`)).then(async (g) => {
         this.dress(g.scene, id);
         // compile its shaders off the main thread (KHR_parallel_shader_compile) before it is ever drawn, so the first
         // frame with the arena doesn't stall the menu while the driver compiles

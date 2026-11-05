@@ -111,7 +111,9 @@ export function createArena(root) {
       if (!("transferControlToOffscreen" in HTMLCanvasElement.prototype) || typeof Worker !== "function") throw new Error("no OffscreenCanvas");
       // Safari's three.js texture path needs the DOM, which a worker doesn't have
       if (/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent)) throw new Error("Safari: OffscreenCanvas textures unsupported");
-      const head = await fetch(`${base}${api.realm}.glb`, { method: "HEAD" });
+      // assets/arena/arena.json may name each realm's file (a rebuilt arena ships under a new name past the cache)
+      const files = await fetch(`${base}arena.json`).then((r) => (r.ok ? r.json() : null)).then((m) => m?.realms ?? {}, () => ({}));
+      const head = await fetch(`${base}${files[api.realm] ?? `${api.realm}.glb`}`, { method: "HEAD" });
       if (!head.ok) throw new Error(`no arena model (${head.status})`);
       canvas = h("canvas", { class: "ar-3d", aria: { hidden: "true" } });
       root.prepend(canvas);
