@@ -2,6 +2,29 @@
 
 Every rules or card change ships under a new `rulesetId`, so a game built on an older Deckwright keeps replaying exactly as it did.
 
+## 0.9.13 (2026-11-06): the eighth and ninth reviews, and a targeting arrow
+
+No rules change: every ruleset replays exactly as before.
+
+- **A targeting arrow:** while a card, unit or hero power is picked, a glowing curved arrow runs from it to the pointer. It snaps onto a valid target, red for a foe and green for an ally (`ui/aim.js`). It works with mouse and pen; on touch, the player taps the target.
+- **Title:**
+  - the CSS level stays up until the 3D canvas has faded in, so there's no black dip;
+  - one realm per visit;
+  - a realm's sky and lights switch only once its model is showing;
+  - the featured card is never blank.
+- **The 3D arena:**
+  - the battle table sinks below the dais outside a match and rises for one;
+  - Underworld: horizon-red haze with no hard edge, an orange rune ring, deeper ember bands, red crystals, sooty bone, and fog and obsidian tweaks.
+- **Battle:**
+  - a picked card lifts less, so your plate and life stay visible, and the hand is larger on tall screens;
+  - bonus energy shows as gold pips instead of "2/1", and the life badge no longer covers the energy pips;
+  - unit keyword tags sit clear of the foe's stat gems, and units show a nameplate on hover;
+  - the result reads damage "to their champion".
+- **Pages:**
+  - champion select fits 1366×768, and portraits fade in over an element-tinted skeleton, pre-warmed from the title;
+  - Gauntlet, puzzle, profile and result scale up on large screens, and the Gauntlet preview road is in colour.
+- **Phone:** readable versus subtitle, plate names and hand names.
+
 ## 0.9.12 (2026-11-06): no empty sky on the first load
 
 No rules change: every ruleset replays exactly as before.
