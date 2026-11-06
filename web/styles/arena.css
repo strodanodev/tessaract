@@ -89,7 +89,8 @@
  * except for the embers, the battle shade and the vignette */
 #arena canvas.ar-3d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.2s ease; }
 #arena.three canvas.ar-3d { opacity: 1; }
-#arena.three :is(.ar-sky, .ar-stars, .ar-aurora, .ar-glow, .ar-far, .ar-stage, .ar-fog, .ar-near, .ar-brazier) { visibility: hidden; animation: none; }
+/* the CSS level stays up under the canvas until its fade-in ends, so the hand-over never dips to black */
+#arena.three :is(.ar-sky, .ar-stars, .ar-aurora, .ar-glow, .ar-far, .ar-stage, .ar-fog, .ar-near, .ar-brazier) { visibility: hidden; animation: none; transition: visibility 0s 1.3s; }
 #arena.three .ar-vignette { background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 50%, rgba(3, 2, 6, 0.7) 100%); }
 
 /* battle: dim the level so the board reads */
