@@ -73,6 +73,10 @@ button.tcard:disabled { cursor: default; filter: saturate(0.4) brightness(0.6); 
 .u-atk.up, .u-hp.up { color: #b8ffcc; }
 .u-hp.hurt { color: #ffd0c8; }
 .u-name { position: absolute; left: 14%; right: 14%; bottom: 0; height: 18px; display: none; }
+/* a unit's name shows on its nameplate while you point at it, pick it or aim at it (mouse; touch holds to read) */
+@media (pointer: fine) {
+  .unit:is(:hover, :focus-visible, .picked, .target:hover) .u-name { display: block; left: 50%; right: auto; bottom: 26%; height: auto; transform: translateX(-50%); z-index: 5; max-width: 150%; padding: 2px 8px; border: 1px solid rgba(255, 201, 94, 0.55); border-radius: 2px; background: rgba(8, 6, 12, 0.9); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6); font-family: var(--font-display); font-weight: 700; font-size: clamp(10px, calc(var(--u, 84px) * 0.12), 13px); letter-spacing: 0.04em; color: var(--ivory); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+}
 .u-kw { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; flex-wrap: wrap; justify-content: center; width: 112%; gap: 2px; }
 /* your lane's tags sit inside the frame's top: above it they ran into the foe's attack and health gems */
 .my-lane .u-kw { top: 3px; }

@@ -35,7 +35,7 @@
 .plate.bottom .pl-life { background: radial-gradient(circle at 40% 30%, #c4e8ff, #2f7fe0 50%, #0b2a5e 90%); }
 .pl-life.low { animation: lowLife 1s ease-in-out infinite; }
 @keyframes lowLife { 50% { box-shadow: 0 0 0 2px #0b0910, 0 0 18px rgba(255, 60, 40, 0.9); } }
-.pl-id { display: grid; gap: 3px; min-width: 0; }
+.pl-id { display: grid; gap: 3px; min-width: 0; padding-left: 10px; }   /* clear of the life badge on the portrait's corner */
 .pl-name { font-family: var(--font-display); font-weight: 700; font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ivory); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl-chips { display: flex; align-items: center; gap: 5px; min-width: 0; overflow: hidden; }
 .chip-mini { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px 0 5px; border-radius: 999px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.45); font-size: 11px; color: var(--text); flex: none; }
