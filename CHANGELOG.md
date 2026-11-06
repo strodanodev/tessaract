@@ -2,6 +2,13 @@
 
 Every rules or card change ships under a new `rulesetId`, so a game built on an older Deckwright keeps replaying exactly as it did.
 
+## 0.9.12 (2026-11-06): no empty sky on the first load
+
+No rules change: every ruleset replays exactly as before.
+
+- **The title no longer shows an empty 3D sky on a cold load.** The page could switch realm, to the featured champion's, while the first arena model was still loading. That load then stepped aside, but the worker still reported "ready", so the CSS arena gave way to an empty stage.
+- The worker now awaits the new `Realm.shown()`, which resolves once the current realm's model is on screen, before it reports ready.
+
 ## 0.9.11 (2026-11-06): phone rules strip and page polish
 
 No rules change: every ruleset replays exactly as before.

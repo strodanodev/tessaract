@@ -1,6 +1,6 @@
 {
   "name": "tessaract",
-  "version": "0.9.11",
+  "version": "0.9.12",
   "description": "Build a Web3 trading card game from scratch or from any NFT collection: one JSON game file, ERC-6699 champions, wallet decks, bot balance sims, a deployable web client, two-player relay, LitNode-ready rulesets.",
   "author": {
     "name": "strodanodev",
