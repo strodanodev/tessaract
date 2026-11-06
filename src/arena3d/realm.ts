@@ -49,7 +49,7 @@ const PRESETS: Record<RealmId, Preset> = {
   },
   underworld: {
     // the fog is the horizon's own red and thick enough that the crater floor melts into it, with no hard edge
-    sky: { top: 0x050102, bottom: 0x2a0806, glow: 0x7a1a08, fog: 0x501108, fogDensity: 0.036 },
+    sky: { top: 0x050102, bottom: 0x2a0806, glow: 0x7a1a08, fog: 0x3c0c06, fogDensity: 0.03 },
     aurora: 0, stars: 0.25,
     key: { color: 0xffd0b0, intensity: 1.8, position: [-5, 10, -6] },
     rim: { color: 0xff5a2a, intensity: 70 },
@@ -243,7 +243,7 @@ export class Realm {
     // the untextured surfaces get weathering (see weather()), or they read as flat greybox next to the photo stone
     if (/banner/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x14284a, roughness: 0.85, metalness: 0, side: THREE.DoubleSide }), 5, 0.35, 0.2, 0.25);
     if (/gold/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.32, metalness: 1, envMapIntensity: 1.2 }), 3, 0.3, 0.35, 0.3);
-    if (/obsidian/.test(n)) return weather(new THREE.MeshPhysicalMaterial({ color: 0x0c080e, roughness: 0.28, metalness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.3, envMapIntensity: 1.0 }), 1.4, 0.55, 0.3, 0.15);   // glossy: relief only faint
+    if (/obsidian/.test(n)) return weather(new THREE.MeshPhysicalMaterial({ color: 0x08060a, roughness: 0.4, metalness: 0.2, clearcoat: 0.35, clearcoatRoughness: 0.35, envMapIntensity: 0.6 }), 1.4, 0.55, 0.3, 0.15);   // volcanic glass, dark: glossier streaks read as melted chocolate
     if (/statue|chrome|accent/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x7c8687 : 0x5e4c48, roughness: 0.82, metalness: 0.05, envMapIntensity: 0.4 }), 2.6, 0.45, 0.45, 0.55);
     if (/bone/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'underworld' ? 0x56483a : 0x80735c, roughness: 0.82, metalness: 0 }), 2.2, 0.6, 0.75, 0.6);   // soot-stained, or it reads as flat beige
     if (/basalt/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x15111a, roughness: 0.9, metalness: 0.08 }), 1.6, 0.5, 0.3, 0.55);
