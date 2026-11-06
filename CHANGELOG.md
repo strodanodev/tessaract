@@ -2,6 +2,35 @@
 
 Every rules or card change ships under a new `rulesetId`, so a game built on an older Deckwright keeps replaying exactly as it did.
 
+## 0.9.14 (2026-11-07): the title level, the tenth review, and keywords you can see
+
+No rules change: every ruleset replays exactly as before.
+
+- **The title level:**
+  - mountain silhouettes on the horizon, and moonlight and firelight;
+  - flames glow with four practical point lights (desktop only), and flame sprites are additive;
+  - the camera makes a framed sweep instead of a full orbit, and motes are sparser.
+- **Fixed: the empty-hall title.**
+  - The shadow map renders on the first frame. Before, receivers sampled a placeholder of the wrong format, and WebGL dropped those draws.
+  - "Ready" waits for two frames drawn with the model, capped at 8 s, and the page waits up to 45 s.
+- **Posters:** `arena.json` may name a poster per realm under `"posters"`. The CSS arena shows it until the 3D arena fades in, and keeps it where 3D can't run.
+- **Statues:**
+  - they keep their own double-sided materials, where the stone override had made them single-sided and torn;
+  - the Valhalla ring is turned 22.5°.
+- **Anti-aliasing:** an FXAA pass after tone mapping. MSAA on the half-float target pushed stage setup on integrated GPUs past the page's timeout.
+- **Battle:**
+  - hero portraits are larger, with a framed rim light that breathes and flashes when hit or healed;
+  - empty slots are faint sockets, and the targeting arrow is bolder;
+  - keywords are visible: Guard gets a shield badge, Shield a glass dome, Poison a venom glow, and Rush a glint while the unit can attack;
+  - picked units no longer lift over the foe's stat gems, and keyword tags sit inside the frame;
+  - hand cards zoom to 1.5× on mouse hover.
+- **Pages:**
+  - a lighter scrim and blur, so the arena shows behind menus;
+  - the Gauntlet road is a gilt path, with a difficulty per stage and a crowned final foe;
+  - versus has a diagonal seam of light and a tip plate;
+  - the result shows your champion's bust, gold-lit on a win and drained on a loss.
+- **Text:** replays read "Replay · turn N", the play hint shows only on early turns, and the result stat reads "champion damage".
+
 ## 0.9.13 (2026-11-06): the eighth and ninth reviews, and a targeting arrow
 
 No rules change: every ruleset replays exactly as before.
