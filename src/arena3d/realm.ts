@@ -173,7 +173,8 @@ export class Realm {
     const found = this.stage.coarse ? null : await this.loadStatues();
     const ring = found?.manifest.realms?.[id];
     if (found && ring && this.id === id) {
-      const plinth = stone(id === 'valhalla' ? 0x4a4a4e : 0x5a4842);
+      // plinths in the hall's own photographed stone (flat grey read as blurry placeholder blocks)
+      const plinth = this.textured(/stone|rock/) ?? stone(id === 'valhalla' ? 0x4a4a4e : 0x5a4842);
       const block = new THREE.BoxGeometry(1.5, 1.1, 1.5), slab = new THREE.BoxGeometry(1.85, 0.2, 1.85);
       const n = found.models.length;
       for (let i = 0; i < n; i++) {
@@ -279,7 +280,7 @@ export class Realm {
     }
     // the untextured surfaces get weathering (see weather()), or they read as flat greybox next to the photo stone
     if (/banner/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x14284a, roughness: 0.85, metalness: 0, side: THREE.DoubleSide }), 5, 0.35, 0.2, 0.25);
-    if (/gold/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.32, metalness: 1, envMapIntensity: 1.2 }), 3, 0.3, 0.35, 0.3);
+    if (/gold/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.42, metalness: 1, envMapIntensity: 1.2 }), 3, 0.3, 0.35, 0.3);   // rough enough not to shimmer
     if (/obsidian/.test(n)) return weather(new THREE.MeshPhysicalMaterial({ color: 0x08060a, roughness: 0.4, metalness: 0.2, clearcoat: 0.35, clearcoatRoughness: 0.35, envMapIntensity: 0.6 }), 1.4, 0.55, 0.3, 0.15);   // volcanic glass, dark: glossier streaks read as melted chocolate
     if (/statue|chrome|accent/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x7c8687 : 0x5e4c48, roughness: 0.82, metalness: 0.05, envMapIntensity: 0.4 }), 2.6, 0.45, 0.45, 0.55);
     if (/bone/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'underworld' ? 0x56483a : 0x80735c, roughness: 0.82, metalness: 0 }), 2.2, 0.6, 0.75, 0.6);   // soot-stained, or it reads as flat beige
@@ -321,6 +322,17 @@ export class Realm {
   }
 
   private glows: THREE.Sprite[] = [];
+
+  /** A copy of the loaded model's first textured material whose name matches, for props built in code. */
+  private textured(name: RegExp): THREE.MeshStandardMaterial | null {
+    let found: THREE.MeshStandardMaterial | null = null;
+    this.group.children.find((c) => c !== this.dressing)?.traverse((o) => {
+      if (found || !(o instanceof THREE.Mesh)) return;
+      const m = o.material as THREE.MeshStandardMaterial;
+      if (m.map && name.test(m.name)) found = m.clone();
+    });
+    return found;
+  }
 
   /**
    * Flames that glow and light the hall: an additive glow over every flame in the model (found by clustering the fire
