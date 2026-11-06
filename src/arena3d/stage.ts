@@ -53,13 +53,19 @@ export class Stage {
   private readonly timer = new THREE.Timer();
   private readonly updaters: Array<(dt: number, t: number) => void> = [];
   /** The title camera looks across the arena (statues, pillars, the far rim), not down into the dais. */
-  private readonly menuTarget = new THREE.Vector3(0, 3.7, 0);
+  private readonly menuTarget = new THREE.Vector3(0, 3.9, 0);
   /** In battle the camera aims 1.2 m in front of the table, so the table sits under the HTML board (above mid-screen). */
   private readonly battleTarget = new THREE.Vector3(0, 0.6, 1.2);
   private readonly battleSpot = new THREE.Vector3();
   private ratioStep: number;
   private mood: Mood = 'menu';
-  private angle = 0.6;
+  /** The title camera's heading: the realm sets it so the camera faces a statue across the dais (see Realm). */
+  menuAngle = 0.6;
+  /**
+   * Four warm practical lights (braziers, lava) the realm places; always in the scene, so placing them never changes
+   * the shader programs (adding lights later would recompile every material, a multi-second stall).
+   */
+  readonly practicals: THREE.PointLight[] = [];
   private shakeLeft = 0;
   private frame = 0;
   private frames = 0;
@@ -112,6 +118,7 @@ export class Stage {
     this.scene.environmentIntensity = 0.55;
     pmrem.dispose();
     this.scene.fog = new THREE.FogExp2(0x05050a, 0.028);
+    if (!opts.coarse) for (let i = 0; i < 4; i++) { const l = new THREE.PointLight(0xff9a3c, 0, 10, 2); this.practicals.push(l); this.scene.add(l); }   // phones: no per-pixel extras
     this.scene.background = new THREE.Color(0x05050a);
 
     this.keyLight.position.set(5, 11, 6);
@@ -129,7 +136,7 @@ export class Stage {
 
     this.sky = this.skyDome();
     this.stars = this.starfield();
-    this.motes = this.moteField(opts.coarse ? 260 : 640);
+    this.motes = this.moteField(opts.coarse ? 150 : 300);   // sparse: a dense field read as uniform noise over the statues
     this.scene.add(this.sky, this.stars, this.motes);
 
     // 4x MSAA on the scene target (the renderer's own antialias doesn't reach a composer): without it every edge
@@ -235,8 +242,8 @@ export class Stage {
           p.y = mod(p.y + time * rise * (0.6 + aSeed * 0.8), h);
           p.x += sin(time * 0.4 + aSeed * 20.0) * 0.45; p.z += cos(time * 0.33 + aSeed * 17.0) * 0.45;
           vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv;
-          gl_PointSize = min(size * (0.5 + aSeed) * (180.0 / -mv.z), 9.0 * size);   // near motes stay specks, not blobs
-          vA = smoothstep(0.0, 1.2, p.y) * (1.0 - smoothstep(h - 3.0, h - 0.3, p.y)) * (0.55 + 0.45 * sin(time * 2.3 + aSeed * 31.0)); }`,
+          gl_PointSize = min(size * (0.35 + aSeed) * (120.0 / -mv.z), 5.0 * size);   // varied, and near motes stay specks, not blobs
+          vA = smoothstep(0.0, 1.2, p.y) * (1.0 - smoothstep(h - 3.0, h - 0.3, p.y)) * (0.35 + 0.35 * sin(time * 2.3 + aSeed * 31.0)) * smoothstep(1.5, 5.0, -mv.z); }`,   // none right at the lens
       fragmentShader: `uniform vec3 color; uniform float opacity; varying float vA;
         void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.05, d);
           gl_FragColor = vec4(color * (1.0 + a * 1.5), a * vA * opacity); }`,
@@ -305,12 +312,13 @@ export class Stage {
   /** Menu: a slow, low circle round the dais, looking across the arena. Battle: high over the dais, barely drifting. */
   private place(dt: number, t: number): void {
     if (this.mood === 'menu') {
-      if (!this.still) this.angle += dt * 0.06;
-      // low, so the statues, spires and sky fill the frame rather than the table top
-      // low and looking slightly up, so the statues stand tall against the sky and the dais floor stays a sliver
-      // r stays well inside the statue ring (13-14 m): at 12.6 the camera brushed past a statue and its halo filled the sky
-      const r = 10.5, y = (this.camera.aspect > 1.25 ? 2.5 : 3.0) + Math.sin(this.angle * 0.7) * 0.25;
-      this.camera.position.set(Math.sin(this.angle) * r, y, Math.cos(this.angle) * r);
+      // a slow, eased sweep of +-10 degrees round the heading, not a full orbit: the statue across the dais stays framed
+      // right of the menu column instead of drifting under it. Low (knee height) and looking up, so the statues stand
+      // tall against the sky and the floor stays a sliver. r is well inside the statue ring (13-14 m): at 12.6 the
+      // camera brushed past a statue and its halo filled the sky.
+      const a = this.menuAngle + (this.still ? 0 : Math.sin(t * 0.06) * 0.17);
+      const r = 10.5, y = (this.camera.aspect > 1.25 ? 1.7 : 2.4) + (this.still ? 0 : Math.sin(t * 0.05) * 0.15);
+      this.camera.position.set(Math.sin(a) * r, y, Math.cos(a) * r);
     } else {
       // steep, so the dais under the HTML table is seen nearly as the table is (it tilts 26deg on screen)
       // a lower, three-quarter view: the arena's statues and spires stand as silhouettes round the table instead of
