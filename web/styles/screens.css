@@ -390,7 +390,13 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(2.5px) brightness(0.86
 .vs-bar { width: 100%; height: 3px; background: rgba(255, 201, 94, 0.15); overflow: hidden; }
 .vs-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-4), var(--gold-1), var(--gold-4)); box-shadow: 0 0 12px var(--gold-2); transform-origin: left; transform: scaleX(0); transition: transform 0.2s linear; }
 .vs-status { font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--muted); }
-.vs-tip { margin: 0; font-size: 13px; color: #cdc3b0; line-height: 1.5; text-wrap: balance; }
+.vs-tip { margin: 0; padding: 10px 18px; font-size: 13px; color: #d8cfbd; line-height: 1.5; text-wrap: balance; border: 1px solid var(--line); border-radius: 3px; background: rgba(6, 5, 10, 0.78); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5); }
+/* desktop: the two sides meet on a diagonal, along a seam of light, not a straight cut down the middle */
+@media (min-width: 761px) {
+  .vs-side.you { margin-right: -4vw; clip-path: polygon(0 0, 100% 0, calc(100% - 8vw) 100%, 0 100%); }
+  .vs-side.foe { margin-left: -4vw; clip-path: polygon(8vw 0, 100% 0, 100% 100%, 0 100%); }
+  .versus::after { content: ''; position: absolute; left: 50%; top: 50%; z-index: 2; width: 4px; height: 150vh; pointer-events: none; transform: translate(-50%, -50%) rotate(atan2(8vw, 100vh)); background: linear-gradient(180deg, transparent 12%, rgba(255, 201, 94, 0.9) 30%, #fff6dc 46%, rgba(255, 201, 94, 0.8) 60%, transparent 72%);   /* fades out above the status and tip */ box-shadow: 0 0 18px rgba(255, 201, 94, 0.8), 0 0 46px rgba(255, 170, 60, 0.45); }
+}
 .vs-rune svg { width: 18px; height: 18px; color: var(--gold-3); animation: spin 6s linear infinite; }
 @media (max-width: 760px) {
   .versus { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }

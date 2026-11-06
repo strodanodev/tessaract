@@ -9,13 +9,15 @@ export function createResult(app) {
   const emblem = h("div", { class: "res-emblem" });
   const stats = h("div", { class: "res-stats" });
   const mvp = h("div", { class: "res-mvp" });
+  // your champion, large beside the card: lit in gold on a win, drained on a loss (styles: .res-hero)
+  const hero = h("img", { class: "res-hero", alt: "", decoding: "async", hidden: true });
   const actions = h("div", { class: "res-actions" });
   const shareUrl = h("input", { class: "input", type: "text", readOnly: true, aria: { label: "Replay link" } });
   const share = h("div", { class: "share", hidden: true },
     h("label", { class: "hint", text: "Replay link: anyone with it can watch this match, move by move." }),
     h("div", { class: "share-row" }, shareUrl, h("button", { class: "btn ghost sm", type: "button", on: { click: () => void navigator.clipboard?.writeText(shareUrl.value).then(() => app.toast("Link copied"), () => app.toast("Select the link and copy it", "err")) } }, icon("link"), "Copy")));
   const el = h("div", { class: "result", hidden: true, role: "dialog", aria: { modal: "true", label: "Match result" } },
-    h("div", { class: "res-rays" }),
+    h("div", { class: "res-rays" }), hero,
     h("div", { class: "res-inner" }, emblem, title, detail, stats, mvp, actions, share));
 
   return {
@@ -34,6 +36,8 @@ export function createResult(app) {
       detail.textContent = sub;
       stats.replaceChildren(...numbers.map(([v, l]) => tile(String(v), l)));
       mvp.hidden = !champion;
+      hero.hidden = !champion?.art;
+      if (champion?.art) hero.src = champion.art;
       if (champion) mvp.replaceChildren(app.cards.championCard(champion, { eager: true }), h("div", null, h("span", { class: "eyebrow", text: "Your champion" }), h("b", { class: "display", text: champion.name }), h("span", { class: "hint", text: championNote ?? champion.epithet ?? "" })));
       share.hidden = true;
       const make = (b) => h("button", { class: b.link ? "link-btn" : `btn ${b.primary ? "primary lg pulse" : "ghost"}`, type: "button", on: { click: b.onClick } }, icon(b.icon), b.text);
