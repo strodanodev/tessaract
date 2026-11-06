@@ -258,8 +258,10 @@ export function matchScreen(app) {
       p.spellPower ? h("span", { class: "chip-mini buff", title: `Spell power +${p.spellPower}` }, icon("spark"), h("b", { text: `+${p.spellPower}` })) : null,
       p.unitAttack ? h("span", { class: "chip-mini buff", title: `Unit attack +${p.unitAttack}` }, icon("sword"), h("b", { text: `+${p.unitAttack}` })) : null].filter(Boolean));
     const n = Math.max(p.energyCap, p.energy);
-    P.energy.replaceChildren(...Array.from({ length: n }, (_, i) => h("i", { class: i < p.energy ? "full" : "" })), h("span", { class: "tabnum", text: `${p.energy}/${p.energyCap}` }));
-    P.energy.title = `energy ${p.energy}/${p.energyCap}`;
+    // energy past the cap is a bonus for this turn: gold pips, and the count alone rather than a "2/1"
+    const bonus = Math.max(0, p.energy - p.energyCap);
+    P.energy.replaceChildren(...Array.from({ length: n }, (_, i) => h("i", { class: i >= p.energyCap ? "full bonus" : i < p.energy ? "full" : "" })), h("span", { class: "tabnum", text: bonus ? `${p.energy}` : `${p.energy}/${p.energyCap}` }));
+    P.energy.title = bonus ? `energy ${p.energy} (${bonus} bonus this turn)` : `energy ${p.energy}/${p.energyCap}`;
     // the hero power
     const pw = p.power >= 0 ? game.champion.powers?.[p.power] : null;
     P.power.replaceChildren();

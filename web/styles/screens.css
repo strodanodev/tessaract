@@ -143,9 +143,12 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .champ-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 14px; align-content: start; overflow-y: auto; overscroll-behavior: contain; padding: 12px 6px 18px 2px; }
 .champ-grid .ccard .name { font-size: 12.5px; }
 /* while a portrait loads, its frame shows a shimmer in the champion's element, not a blank */
-.champ-grid .ccard .art { background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.06) 45%, transparent 60%) 0 0 / 250% 100%, radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--el) 30%, #1a1420), #0a080d 75%); animation: artLoad 1.6s linear infinite; }
+.champ-grid .ccard .art { background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.1) 45%, transparent 60%) 0 0 / 250% 100%, radial-gradient(circle at 50% 36%, transparent 25%, color-mix(in srgb, var(--el) 55%, transparent) 26.5%, transparent 28.5%), radial-gradient(ellipse 34% 42% at 50% 78%, color-mix(in srgb, var(--el) 22%, #15111b) 60%, transparent 62%), radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--el) 40%, #1a1420), #0a080d 78%); animation: artLoad 1.6s linear infinite; }
 .champ-grid .ccard .art:has(img[data-loaded]), .champ-grid .ccard .art:not(:has(img)) { animation: none; background: none; }
-@keyframes artLoad { to { background-position: -250% 0, 0 0; } }
+/* a portrait shows once decoded (see cards.js), fading in over the shimmer: fifty large decodes can lag the load event */
+.champ-grid .ccard .art img { opacity: 0; transition: opacity 0.35s ease; }
+.champ-grid .ccard .art img[data-loaded] { opacity: 1; }
+@keyframes artLoad { to { background-position: -250% 0, 0 0, 0 0, 0 0; } }
 .champ-grid .ccard .sub { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .champ-grid .ccard .gem { width: 14px; height: 14px; }
 .champ-grid .ccard .kind { font-size: 8px; padding: 2px 5px; }

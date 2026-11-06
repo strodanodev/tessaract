@@ -48,7 +48,8 @@ const PRESETS: Record<RealmId, Preset> = {
     grade: 0xd2f0ff,
   },
   underworld: {
-    sky: { top: 0x050102, bottom: 0x2a0806, glow: 0x7a1a08, fog: 0x120404, fogDensity: 0.024 },
+    // the fog is the horizon's own red and thick enough that the crater floor melts into it, with no hard edge
+    sky: { top: 0x050102, bottom: 0x2a0806, glow: 0x7a1a08, fog: 0x2a0705, fogDensity: 0.032 },
     aurora: 0, stars: 0.25,
     key: { color: 0xffd0b0, intensity: 1.8, position: [-5, 10, -6] },
     rim: { color: 0xff5a2a, intensity: 70 },
@@ -75,6 +76,7 @@ export class Realm {
   private readonly dressing = new THREE.Group();
   /** The battle table: fitted under the HTML board in battle (see fitTable), a smaller centrepiece on the title. */
   private table: THREE.Group | null = null;
+  private tableSettled = false;   // its shadow is redrawn once each time it comes to rest
   private readonly ray = new THREE.Raycaster();
   private readonly tablePlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -TABLE_TOP);
   private statues: Promise<{ manifest: StatueManifest; models: THREE.Object3D[] } | null> | null = null;
@@ -156,6 +158,7 @@ export class Realm {
     // the battle table: a carved stone slab on a pedestal at the centre of the dais, gilt-edged; the HTML board lies
     // over it in battle, and on the title it is the arena's centrepiece
     this.table = battleTable(stone(id === 'valhalla' ? 0x3c5a60 : 0x4a2e2a), stone(id === 'valhalla' ? 0x2c2c32 : 0x231a1c), id === 'valhalla' ? 0x7fe6ff : 0xff6a2a);
+    this.table.position.y = this.stage.inBattle ? 0 : TABLE_SINK;
     this.dressing.add(this.table);
     const found = this.stage.coarse ? null : await this.loadStatues();
     const ring = found?.manifest.realms?.[id];
@@ -213,10 +216,10 @@ export class Realm {
     if (/fire|ember/.test(n)) {
       const m = src.clone();
       // fire flickers hot; the spires' ember bands only smoulder (at fire's heat, bloom turns them into white bars)
-      m.userData.heat = /fire/.test(n) ? 3.0 : 2.6;
+      m.userData.heat = /fire/.test(n) ? 3.0 : 1.5;
       m.emissiveIntensity = m.userData.heat;
       m.color.set(0x1a0805);
-      if (!/fire/.test(n)) m.emissive.set(0xff6a1a);   // embers glow a hot orange, not the source's pale gold
+      if (!/fire/.test(n)) m.emissive.set(0xff3c08);   // embers glow a deep orange: brighter or paler, AgX washes them to salmon
       fires.push(m);
       return m;
     }
@@ -232,7 +235,8 @@ export class Realm {
     }
     // crystals: glossy, faceted and iridescent, lit from within, instead of flat glowing triangles
     if (/crystal/.test(n)) {
-      const glow = src.emissive.clone().multiply(new THREE.Color(0.85, 0.55, 0.4));   // deep ember red: pale pink blooms to white
+      // deep ember red (pale pink blooms to white, and AgX turns orange-pink to salmon)
+      const glow = id === 'underworld' ? new THREE.Color(0xc41e04) : src.emissive.clone().multiply(new THREE.Color(0.85, 0.55, 0.4));
       return new THREE.MeshPhysicalMaterial({ color: glow.clone().multiplyScalar(0.3), emissive: glow, emissiveIntensity: 0.7, roughness: 0.06, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04, iridescence: 0.7, iridescenceIOR: 1.6, envMapIntensity: 2.4, flatShading: true });
     }
     // the untextured surfaces get weathering (see weather()), or they read as flat greybox next to the photo stone
@@ -240,7 +244,7 @@ export class Realm {
     if (/gold/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.32, metalness: 1, envMapIntensity: 1.2 }), 3, 0.3, 0.35, 0.3);
     if (/obsidian/.test(n)) return weather(new THREE.MeshPhysicalMaterial({ color: 0x0c080e, roughness: 0.28, metalness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.3, envMapIntensity: 1.0 }), 1.4, 0.55, 0.3, 0.15);   // glossy: relief only faint
     if (/statue|chrome|accent/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x7c8687 : 0x5e4c48, roughness: 0.82, metalness: 0.05, envMapIntensity: 0.4 }), 2.6, 0.45, 0.45, 0.55);
-    if (/bone/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x80735c, roughness: 0.82, metalness: 0 }), 2.2, 0.55, 0.55, 0.6);
+    if (/bone/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'underworld' ? 0x56483a : 0x80735c, roughness: 0.82, metalness: 0 }), 2.2, 0.6, 0.75, 0.6);   // soot-stained, or it reads as flat beige
     if (/basalt/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x15111a, roughness: 0.9, metalness: 0.08 }), 1.6, 0.5, 0.3, 0.55);
     if (/dark/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x1a1613, roughness: 0.7, metalness: 0.15 }), 2, 0.45, 0.3);
     return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x4a443c : 0x2a2226, roughness: 0.92, metalness: 0.05, envMapIntensity: 0.35 }), 1.8, 0.5, 0.45, 0.55);
@@ -254,7 +258,8 @@ export class Realm {
   private fitTable(dt: number): void {
     if (!this.table) return;
     const s = this.stage, b = s.inBattle ? s.board : null;
-    let sx = 0.7, sz = 0.7, px = 0, pz = 0;
+    // outside battle the table waits below the dais, so the title shows the level, not a bare slab; it rises for a match
+    let sx = 0.7, sz = 0.7, px = 0, pz = 0, py = TABLE_SINK;
     if (b && b.w > 0 && b.h > 0) {
       const hit = (x: number, y: number): THREE.Vector3 | null => {
         this.ray.setFromCamera(s.toNdc(x, y), s.camera);
@@ -264,11 +269,16 @@ export class Realm {
       if (!l || !r || !top || !bot) return;
       sx = (Math.abs(r.x - l.x) / TABLE_L) * 1.03;   // a hair larger: the gilt band frames the board's edge
       sz = (Math.abs(bot.z - top.z) / TABLE_D) * 1.03;
-      px = (l.x + r.x) / 2; pz = (top.z + bot.z) / 2;
+      px = (l.x + r.x) / 2; pz = (top.z + bot.z) / 2; py = 0;
     }
     const k = Math.min(1, dt * 6), T = this.table;
     T.scale.x += (sx - T.scale.x) * k; T.scale.z += (sz - T.scale.z) * k;
     T.position.x += (px - T.position.x) * k; T.position.z += (pz - T.position.z) * k;
+    T.position.y += (py - T.position.y) * Math.min(1, dt * 2.5);
+    T.visible = T.position.y > TABLE_SINK + 0.02;
+    const settled = Math.abs(py - T.position.y) < 0.004 && Math.abs(sx - T.scale.x) < 0.004 && Math.abs(px - T.position.x) < 0.01;
+    if (settled && !this.tableSettled) this.stage.refreshShadows();
+    this.tableSettled = settled;
   }
 
   private update(dt: number, t: number): void {
@@ -281,6 +291,8 @@ export class Realm {
 
 /** The battle table's size (m) before it is fitted, and the height of its top. */
 const TABLE_L = 15, TABLE_D = 7.6, TABLE_TOP = 0.74;
+/** Where the table waits, below the dais floor, when there is no battle. */
+const TABLE_SINK = -1.05;
 
 /** A stadium outline (a rectangle whose short ends are half circles), length along x, as a three.js Shape. */
 function stadiumShape(length: number, depth: number): THREE.Shape {

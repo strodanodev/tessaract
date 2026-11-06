@@ -350,4 +350,8 @@ const upgradeArena = () => { void arena.upgrade().then((ok) => { if (ok) perform
 // ?arena=css keeps the CSS arena (for comparisons, and for players who prefer it).
 if (q.get("arena") === "css") document.getElementById("arena").dataset.fallback = "turned off (?arena=css)";
 else setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(upgradeArena, { timeout: 2000 }) : upgradeArena()), 400);
+// Champion select is most players' first click: warm its portraits (about 2 MB) at low priority once the title is up,
+// so the grid doesn't open on empty frames over a cold cache. Skipped under data saver.
+const warmed = [];   // held so the requests aren't dropped with their images
+if (!navigator.connection?.saveData) setTimeout(() => { for (const c of snap.cards) { const src = localArt(c.art); if (src) { const i = new Image(); i.decoding = "async"; i.fetchPriority = "low"; i.src = src; warmed.push(i); } } }, 1200);
 window.tessaract = { arenaStats: () => arena.stats() };
