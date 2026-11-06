@@ -53,7 +53,7 @@ export class Stage {
   private readonly timer = new THREE.Timer();
   private readonly updaters: Array<(dt: number, t: number) => void> = [];
   /** The title camera looks across the arena (statues, pillars, the far rim), not down into the dais. */
-  private readonly menuTarget = new THREE.Vector3(0, 2.8, 0);
+  private readonly menuTarget = new THREE.Vector3(0, 3.7, 0);
   /** In battle the camera aims 1.2 m in front of the table, so the table sits under the HTML board (above mid-screen). */
   private readonly battleTarget = new THREE.Vector3(0, 0.6, 1.2);
   private readonly battleSpot = new THREE.Vector3();
@@ -293,7 +293,8 @@ export class Stage {
     this.gtao?.setSize(Math.max(1, Math.round((w * ratio) / 2)), Math.max(1, Math.round((h * ratio) / 2)));
     this.camera.aspect = w / h;
     // portrait phones: open the field of view so the arena still fills the frame
-    this.camera.fov = this.camera.aspect < 1 ? Math.min(72, 42 / this.camera.aspect) : 42;
+    // the title looks down the hall through a longer lens, so the statues fill the frame instead of the empty floor
+    this.camera.fov = this.camera.aspect < 1 ? Math.min(72, 42 / this.camera.aspect) : this.mood === 'menu' ? 33 : 42;
     // the title screen on a wide screen: slide the picture right, clear of the menu column (as Rapture Chess does)
     const shift = this.mood === 'menu' && this.camera.aspect > 1.25 ? Math.round(w * 0.12) : 0;
     if (shift) this.camera.setViewOffset(w, h, -shift, 0, w, h); else this.camera.clearViewOffset();
@@ -306,7 +307,9 @@ export class Stage {
     if (this.mood === 'menu') {
       if (!this.still) this.angle += dt * 0.06;
       // low, so the statues, spires and sky fill the frame rather than the table top
-      const r = 12.6, y = (this.camera.aspect > 1.25 ? 4.0 : 4.4) + Math.sin(this.angle * 0.7) * 0.4;
+      // low and looking slightly up, so the statues stand tall against the sky and the dais floor stays a sliver
+      // r stays well inside the statue ring (13-14 m): at 12.6 the camera brushed past a statue and its halo filled the sky
+      const r = 10.5, y = (this.camera.aspect > 1.25 ? 2.5 : 3.0) + Math.sin(this.angle * 0.7) * 0.25;
       this.camera.position.set(Math.sin(this.angle) * r, y, Math.cos(this.angle) * r);
     } else {
       // steep, so the dais under the HTML table is seen nearly as the table is (it tilts 26deg on screen)

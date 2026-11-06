@@ -171,7 +171,7 @@ export class Realm {
         const a = (ring.offset ?? 0) + (i / n) * Math.PI * 2;
         // the statue GLBs are static (their pose is baked when they're made), so a plain clone is safe
         const statue = found.models[i].clone(true);
-        this.dress(statue, id);
+        this.dressStatue(statue);
         const box = new THREE.Box3().setFromObject(statue), size = box.getSize(new THREE.Vector3());
         const k = ring.height / Math.max(0.001, size.y);
         statue.scale.setScalar(k);
@@ -192,6 +192,23 @@ export class Realm {
   }
 
   /** Swap the Blender placeholder materials for the stage's: animated lava, glowing fire, worn stone and metal. */
+  /**
+   * The statues are the champions themselves: they keep their own chrome, gold and bone (as in the collection's art),
+   * double-sided because their bodies are thin faceted shells, and only join the shadows. The arena's stone
+   * weathering made them grey and, single-sided, tore their bodies into shards.
+   */
+  private dressStatue(root: THREE.Object3D): void {
+    root.traverse((o) => {
+      if (!(o instanceof THREE.Mesh)) return;
+      o.castShadow = true; o.receiveShadow = true;
+      for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+        m.side = THREE.DoubleSide;
+        // polished, not mirror-bright: at the source's gloss every facet's highlight blooms into a white blob
+        if (m instanceof THREE.MeshStandardMaterial && /chrome|statue/.test(m.name)) { m.envMapIntensity = 0.7; m.roughness = Math.max(m.roughness, 0.3); }
+      }
+    });
+  }
+
   private dress(root: THREE.Object3D, id: RealmId): void {
     const mats = new Map<string, THREE.Material>();
     const animated: THREE.ShaderMaterial[] = [], fires: THREE.MeshStandardMaterial[] = [];
@@ -204,7 +221,12 @@ export class Realm {
       o.receiveShadow = true;
       const src = o.material as THREE.MeshStandardMaterial;
       let m = mats.get(src.name);
-      if (!m) { m = this.material(src, id, animated, fires); mats.set(src.name, m); }
+      if (!m) {
+        m = this.material(src, id, animated, fires);
+        // a double-sided source stays double-sided: thin shells (the statues' faceted bodies) lose every far facet otherwise
+        if (src.side === THREE.DoubleSide && !(m instanceof THREE.ShaderMaterial)) m.side = THREE.DoubleSide;
+        mats.set(src.name, m);
+      }
       o.material = m;
     });
     root.userData.animated = animated;
