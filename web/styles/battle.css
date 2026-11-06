@@ -106,6 +106,19 @@
 .tm-band { fill: none; stroke: rgba(5, 12, 16, 0.88); }
 .tm-glyphs { fill: none; stroke: #92f0ff; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px #3cd4ff) drop-shadow(0 0 8px rgba(60, 212, 255, 0.55)); animation: runeGlow 4.5s ease-in-out infinite; }
 @keyframes runeGlow { 50% { opacity: 0.68; } }
+/* the targeting arrow (ui/aim.js): gold while it hunts, red on a foe, green on an ally */
+.aim { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; overflow: visible; opacity: 0; transition: opacity 0.15s; --aim: #ffd27a; }
+.aim.on { opacity: 1; }
+.aim[data-mode='foe'] { --aim: #ff5a46; }
+.aim[data-mode='ally'] { --aim: #6fe39a; }
+.aim-glow { fill: none; stroke: var(--aim); stroke-width: 14; stroke-linecap: round; opacity: 0.22; filter: blur(5px); }
+.aim-line { fill: none; stroke: var(--aim); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 11; animation: aimFlow 0.5s linear infinite; filter: drop-shadow(0 0 4px var(--aim)); }
+.aim-head { fill: var(--aim); stroke: #1a0e04; stroke-width: 1.5; filter: drop-shadow(0 0 6px var(--aim)); }
+.aim-ring { fill: none; stroke: var(--aim); stroke-width: 2.5; opacity: 0; }
+.aim:not([data-mode='free']) .aim-ring { opacity: 0.9; animation: aimRing 0.9s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes aimFlow { to { stroke-dashoffset: -13; } }
+@keyframes aimRing { from { transform: scale(0.6); opacity: 0.95; } to { transform: scale(1.3); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .aim-line, .aim-ring { animation: none; } }
 /* the Underworld's runes burn like its table groove and lava, not Valhalla's ice blue */
 body:has(#arena[data-realm='underworld']) .tm-glyphs { stroke: #ffb27a; filter: drop-shadow(0 0 3px #ff6a1a) drop-shadow(0 0 8px rgba(255, 90, 26, 0.55)); }
 body:has(#arena[data-realm='underworld']) :is(.tm-edge, .tm-rim) { stroke: rgba(255, 170, 120, 0.26); }

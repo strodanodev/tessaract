@@ -6,6 +6,7 @@ import { decode, Op, ENEMY_CHAMPION, enemyUnit, ownUnit, endTurn, describeEffect
 import { h, icon, stagger, toast } from "../dom.js";
 import { createResult } from "../result.js";
 import { runeRing } from "../runes.js";
+import { createAim } from "../aim.js";
 
 export function matchScreen(app) {
   const { game, rules } = app;
@@ -101,6 +102,7 @@ export function matchScreen(app) {
   addEventListener("resize", () => requestAnimationFrame(fitBoard));
   const el = h("section", { class: "match", aria: { label: "Battle" } },
     fx, foeP.el, h("div", { class: "hud-center" }, medallion, status), board, meP.el, pickInfo, hand, dock, feed, cine, viewbar, result.el);
+  const aim = createAim(el);   // the targeting arrow from whatever is picked (see ui/aim.js)
 
   // ------------------------------------------------------------------ battle menu
   let menu = null;
@@ -381,7 +383,7 @@ export function matchScreen(app) {
       const lines = app.cards.describe(picked);
       pickInfo.replaceChildren(h("b", { text: picked.name }), lines.length ? ` · ${lines.join(" · ")}` : "");
     } else pickInfo.textContent = watching ? "" : "Tap a card to play it · hold it to read it";
-    requestAnimationFrame(() => { ring.refresh(); fitBoard(); });   // after layout: the rune circle and the 3D table
+    requestAnimationFrame(() => { ring.refresh(); fitBoard(); aim.update(pick ? el.querySelector(".hand .tcard.picked, .unit.picked, .power.picked") : null); });   // after layout: the rune circle, the 3D table, the arrow
 
     endBtn.disabled = !myTurn;
     endBtn.classList.toggle("ready", myTurn && !moves.some((m) => m.op !== Op.End));
