@@ -106,6 +106,10 @@
 .tm-band { fill: none; stroke: rgba(5, 12, 16, 0.88); }
 .tm-glyphs { fill: none; stroke: #92f0ff; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px #3cd4ff) drop-shadow(0 0 8px rgba(60, 212, 255, 0.55)); animation: runeGlow 4.5s ease-in-out infinite; }
 @keyframes runeGlow { 50% { opacity: 0.68; } }
+/* the Underworld's runes burn like its table groove and lava, not Valhalla's ice blue */
+body:has(#arena[data-realm='underworld']) .tm-glyphs { stroke: #ffb27a; filter: drop-shadow(0 0 3px #ff6a1a) drop-shadow(0 0 8px rgba(255, 90, 26, 0.55)); }
+body:has(#arena[data-realm='underworld']) :is(.tm-edge, .tm-rim) { stroke: rgba(255, 170, 120, 0.26); }
+body:has(#arena[data-realm='underworld']) .battlefield::before { background: radial-gradient(ellipse at 50% 50%, rgba(235, 110, 60, 0.14), rgba(160, 50, 20, 0.06) 55%, transparent 75%); }
 @media (prefers-reduced-motion: reduce) { .tm-glyphs { animation: none; } }
 /* the height term leaves the rune ring its band (--ring), so lanes never run into it */
 .lane { --u: max(40px, min(var(--u-max), calc((50cqh - 26px - var(--ring, 0px)) / 1.22), calc((100cqw - 90px) / 5))); transform-style: preserve-3d; display: flex; justify-content: center; align-items: center; gap: clamp(8px, 1.4vw, 18px); min-height: calc(var(--u) * 1.22 + 12px); padding: 6px 0; }
