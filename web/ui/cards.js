@@ -76,7 +76,7 @@ export function createCards(app) {
   /** A unit on the board: its portrait, attack and health, and its keywords as frame states. */
   function unitToken(def, u) {
     const kws = def.keywords ?? [];
-    const el = h("button", { type: "button", class: `unit${u.guard ? " guard" : ""}${u.shield ? " shielded" : ""}${u.ready ? "" : " tired"}`, data: { rarity: def.rarity ?? "common" }, style: `--el:${app.elementColor(def.element)}`, title: [def.name, ...describe(def), keywordHelp(def)].filter(Boolean).join("\n") },
+    const el = h("button", { type: "button", class: `unit${u.guard ? " guard" : ""}${u.shield ? " shielded" : ""}${u.ready ? "" : " tired"}${kws.map((k) => ` kw-${String(k).toLowerCase().replace(/[^a-z]+/g, "-")}`).join("")}`, data: { rarity: def.rarity ?? "common" }, style: `--el:${app.elementColor(def.element)}`, title: [def.name, ...describe(def), keywordHelp(def)].filter(Boolean).join("\n") },
       h("div", { class: "u-ring" }, artBox(def, "u-art")),
       h("span", { class: `u-atk tabnum${u.atk > (def.attack ?? 0) ? " up" : ""}`, text: u.atk }),
       h("span", { class: `u-hp tabnum${u.hp < (def.health ?? 0) ? " hurt" : u.hp > (def.health ?? 0) ? " up" : ""}`, text: u.hp }),
