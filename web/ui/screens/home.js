@@ -34,7 +34,8 @@ export function homeScreen(app) {
     const top = ranked.slice(0, 12);
     return [...top.filter((c) => app.owned.has(String(c.tokenId))), ...top.filter((c) => !app.owned.has(String(c.tokenId)))];
   };
-  const showFeature = () => {
+  // the arena takes the first champion's realm and keeps it: a world swapping every few seconds reads as a glitch
+  const showFeature = (andRealm = false) => {
     const list = pool();
     if (!list.length) { feature.hidden = true; return; }
     const c = list[fi++ % list.length];
@@ -46,7 +47,7 @@ export function homeScreen(app) {
       c.epithet ? h("p", { class: "epithet", text: c.epithet }) : null,
       h("p", { class: "kicker", text: [c.element, c.kind].filter(Boolean).join(" · ") }),
       power ? h("p", { class: "power-line" }, icon("bolt"), h("span", { text: `${power.name}: ${power.text}` })) : null);
-    app.arena.setRealm(realmFor(c));
+    if (andRealm) app.arena.setRealm(realmFor(c));
   };
 
   const title = app.game.title;
@@ -73,7 +74,7 @@ export function homeScreen(app) {
       app.arena.setMood("menu");
       for (const i of items) i.refresh();
       stagger(menu, 260);
-      if (!timer) { showFeature(); timer = setInterval(showFeature, 7000); }
+      if (!timer) { showFeature(true); timer = setInterval(() => showFeature(), 7000); }
     },
     leave() { if (timer) clearInterval(timer); timer = null; },
   };
