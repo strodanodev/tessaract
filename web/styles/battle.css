@@ -243,6 +243,9 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
 .result[data-outcome='loss'] .res-title { background: linear-gradient(180deg, #ffe0d8 10%, #ff7a5c 50%, #a8261a 52%, #ff9a7a); -webkit-background-clip: text; background-clip: text; }
 .result[data-outcome='draw'] .res-title { background: linear-gradient(180deg, #ffffff 10%, #bcd6ea 50%, #7f9bb2 52%, #dcebf6); -webkit-background-clip: text; background-clip: text; }
 .res-detail { margin: 0; color: #d6cdbc; line-height: 1.5; }
+/* the result card grows on big screens (it sat as a narrow column in the middle of 1920) */
+@media (min-width: 1500px) and (min-height: 900px) { .res-inner { zoom: 1.2; } }
+@media (min-width: 1800px) and (min-height: 1000px) { .res-inner { zoom: 1.32; } }
 .res-stats { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
 .res-mvp { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: center; text-align: left; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 3px; background: rgba(10, 8, 14, 0.6); }
 .res-mvp > div:last-child { display: grid; gap: 4px; }
@@ -305,7 +308,7 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
   .pl-hero, .pl-face { width: 52px; height: 52px; }
   .pl-hero { margin: -4px 0; }
   .pl-life { min-width: 26px; height: 26px; font-size: 13px; right: -6px; bottom: -4px; }
-  .pl-name { font-size: 12px; }
+  .pl-name { font-size: 12px; letter-spacing: 0.03em; }   /* tighter, so an eleven-letter name fits beside the hero power */
   .pl-who { display: none; }
   /* chips wrap to a second row rather than slide under the hero power */
   .pl-chips { gap: 3px 4px; flex-wrap: wrap; }
@@ -342,6 +345,7 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
   .hand .tcard .tc-frame { grid-template-rows: 1fr auto; }
   .hand .tcard .tc-name { margin: 0; padding: 0.3em 1.2em; border-radius: 0; font-size: 1.36em; white-space: normal; line-height: 1.05; }
   .hand .tcard .tc-name.long { font-size: 1.18em; }
+  .hand .tcard .tc-frame { padding-bottom: 1.5em; }   /* the name clears the attack and health gems in the corners */
   .hand .tcard:hover, .hand .tcard:focus-visible { transform: translateY(-8px); }
   .hand .tcard.picked { transform: translateY(-16px); }
   .killfeed { display: none; }

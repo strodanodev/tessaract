@@ -77,7 +77,8 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .menu-item:hover .mi-arrow svg { transform: translateX(4px); color: var(--gold-1); }
 .home-feature { grid-column: 3; grid-row: 2; align-self: end; display: grid; gap: 12px; justify-items: center; text-align: center; position: relative; z-index: 1; padding-bottom: 8px; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95); }
 .home-feature::before { content: ''; position: absolute; inset: -40px -50px -20px; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 50% 55%, rgba(4, 3, 7, 0.82), rgba(4, 3, 7, 0.5) 55%, transparent 75%); }
-.feature-card { width: 220px; perspective: 900px; }
+.feature-card { width: 220px; perspective: 900px; display: grid; }
+.feature-card > * { grid-area: 1 / 1; }
 .feature-card .ccard.swap-in { animation: cardSwap 0.8s var(--ease-out); }
 @keyframes cardSwap { from { opacity: 0; transform: rotateY(-70deg) translateX(30px); } }
 .feature-cap { display: grid; gap: 6px; max-width: 280px; min-height: 64px; }
@@ -116,6 +117,9 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 
 /* ------------------------------------------------------------------ menu pages */
 .page { display: grid; grid-template-rows: auto 1fr; }
+/* big screens: the gauntlet, puzzle and profile panels grow with the screen instead of floating small in the middle */
+@media (min-width: 1500px) and (min-height: 900px) { .page-wrap > * { zoom: 1.2; } }
+@media (min-width: 1800px) and (min-height: 1000px) { .page-wrap > * { zoom: 1.35; } }
 .page-scrim { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 30%, rgba(5, 4, 9, 0.6)), linear-gradient(180deg, rgba(5, 4, 9, 0.92), rgba(5, 4, 9, 0.76) 30%, rgba(5, 4, 9, 0.8) 70%, rgba(5, 4, 9, 0.95)); }
 .page-head { position: relative; z-index: 1; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: calc(var(--safe-t) + 16px) calc(var(--safe-r) + 28px) 12px calc(var(--safe-l) + 28px); }
 .page-title { display: grid; gap: 2px; min-width: 0; }
@@ -170,6 +174,15 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .cd-power { padding: 10px 12px; border: 1px solid var(--line); border-radius: 3px; background: rgba(255, 201, 94, 0.05); display: grid; gap: 4px; }
 .cd-power p { margin: 0; display: grid; gap: 2px; font-size: 13px; color: #d6cdbc; }
 .cd-power b { font-family: var(--font-display); letter-spacing: 0.08em; color: var(--gold-1); }
+/* laptop heights: a smaller hero card and tighter rows, so the battlefield and bot choices clear the Enter dock */
+@media (max-height: 820px) and (min-width: 901px) {
+  .cd-card { width: min(104px, 14vh); margin-top: 10px; }
+  .cd-body { gap: 6px; padding-top: 6px; }
+  .cd-name { font-size: 20px; }
+  .cd-power { padding: 7px 10px; }
+  .champ-detail .field { gap: 5px; }
+  .champ-detail .seg button { min-height: 36px; }
+}
 @media (max-height: 700px) and (min-width: 901px) { .cd-card { display: none; } }
 @media (max-width: 900px) {
   .select-wrap { grid-template-columns: 1fr; overflow-y: auto; padding: 4px 14px calc(var(--safe-b) + 20px); }
@@ -352,7 +365,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .vs-side.foe .vs-art { transform: scaleX(-1); }
 .vs-id { position: relative; z-index: 2; display: grid; gap: 6px; justify-items: center; text-align: center; padding: 0 18px; }
 .vs-name { font-size: clamp(22px, 3.6vw, 46px); letter-spacing: 0.16em; text-shadow: 0 4px 18px rgba(0, 0, 0, 0.9); }
-.vs-sub { font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; color: color-mix(in srgb, var(--c) 70%, white); }
+.vs-sub { font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; color: color-mix(in srgb, var(--c) 45%, white); text-shadow: 0 1px 2px #000, 0 0 10px rgba(0, 0, 0, 0.95), 0 0 22px rgba(0, 0, 0, 0.8); }   /* readable over a portrait lit in the same colour */
 .versus.go .vs-side.you { animation: vsInL 0.75s var(--ease-out) both; }
 .versus.go .vs-side.foe { animation: vsInR 0.75s var(--ease-out) both; }
 @keyframes vsInL { from { transform: translateX(-60%); opacity: 0; } }
