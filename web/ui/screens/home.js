@@ -41,7 +41,12 @@ export function homeScreen(app) {
     const c = list[fi++ % list.length];
     const card = app.cards.championCard(c, { owned: app.owned.has(String(c.tokenId)), eager: true, tilted: true });
     card.classList.add("swap-in");
-    featureSlot.replaceChildren(card);
+    // the outgoing card stays underneath until the new one has flipped in: a stalled animation never leaves the frame empty
+    const prev = [...featureSlot.children];
+    featureSlot.append(card);
+    const drop = () => { for (const e of prev) e.remove(); };
+    if (!prev.length || getComputedStyle(card).animationName === "none") drop();
+    else card.addEventListener("animationend", drop, { once: true });
     const power = app.heroPowerOf(c);
     featureCap.replaceChildren(
       c.epithet ? h("p", { class: "epithet", text: c.epithet }) : null,
