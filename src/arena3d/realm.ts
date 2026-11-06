@@ -34,11 +34,16 @@ interface Preset {
   motes: { color: number; rise: number; size: number; opacity: number };
   /** The hue the shadows take in the final grade (multiplied in, so 1 is neutral). */
   grade: number;
+  /** Mountain silhouettes on the horizon, near and far (unlit, already blended toward the sky): depth past the level. */
+  ridges: [number, number];
+  /** The practical lights' colour and strength (braziers in Valhalla, the lava moat in the Underworld). */
+  practical: { color: number; intensity: number };
 }
 
 const PRESETS: Record<RealmId, Preset> = {
   valhalla: {
-    sky: { top: 0x060d16, bottom: 0x14283a, glow: 0x2f6f84, fog: 0x07131a, fogDensity: 0.022 },
+    // fog in the horizon's own blue (it was near-black under a teal horizon: a hard seam where the ground ended)
+    sky: { top: 0x060d16, bottom: 0x14283a, glow: 0x2f6f84, fog: 0x1b3346, fogDensity: 0.026 },
     aurora: 1, stars: 0.9,
     key: { color: 0xfff3e0, intensity: 2.4, position: [6, 12, 5] },
     rim: { color: 0x7fe6ff, intensity: 60 },
@@ -46,6 +51,8 @@ const PRESETS: Record<RealmId, Preset> = {
     envIntensity: 0.6, floorRadius: 9.05,
     motes: { color: 0xbff6ff, rise: 0.12, size: 1, opacity: 0.55 },
     grade: 0xd2f0ff,
+    ridges: [0x0a141e, 0x132636],
+    practical: { color: 0xff9a3c, intensity: 16 },
   },
   underworld: {
     // the fog is the horizon's own red and thick enough that the crater floor melts into it, with no hard edge
@@ -57,6 +64,8 @@ const PRESETS: Record<RealmId, Preset> = {
     envIntensity: 0.5, floorRadius: 0,
     motes: { color: 0xff7a2a, rise: 0.55, size: 1.2, opacity: 0.9 },
     grade: 0xffd2c0,
+    ridges: [0x0e0302, 0x1c0504],
+    practical: { color: 0xff5a1a, intensity: 12 },
   },
 };
 
@@ -186,6 +195,10 @@ export class Realm {
         this.dressing.add(spot);
       }
     }
+    // the title camera faces the first statue across the dais
+    if (ring) this.stage.menuAngle = (ring.offset ?? 0) + Math.PI;
+    this.dressing.add(ridges(46, 1.5, 5.5, p.ridges[0], 3), ridges(66, 3, 9, p.ridges[1], 7));   // low, inside the horizon's glow: silhouettes, not a wall
+    this.lightFlames(id);
     if (this.id !== id) return;
     await this.stage.renderer.compileAsync(this.dressing, this.stage.camera, this.stage.scene);
     this.stage.refreshShadows();
@@ -242,12 +255,14 @@ export class Realm {
       m.userData.heat = /fire/.test(n) ? 3.0 : 0.9;
       m.emissiveIntensity = m.userData.heat;
       m.color.set(0x1a0805);
-      if (!/fire/.test(n)) m.emissive.set(0xff2a00);   // embers glow a deep orange: brighter or paler, AgX washes them to salmon
+      if (!/fire/.test(n)) m.emissive.set(0xff2a00);
+      else m.emissive.set(0xff7424);   // the source's pale gold tone-mapped to a beige egg; orange stays a flame   // embers glow a deep orange: brighter or paler, AgX washes them to salmon
       fires.push(m);
       return m;
     }
     // runes glow, but under the bloom threshold's knee: brighter reads as a white band from the battle camera
-    if (/rune/.test(n)) { const m = src.clone(); m.emissiveIntensity = 1.2; m.color.set(0x05050a); return m; }
+    // a soft glow: at full white the pillar bands read as tape
+    if (/rune/.test(n)) { const m = src.clone(); m.emissiveIntensity = 0.75; m.emissive.set(id === 'valhalla' ? 0x58c4ff : 0xff6a2a); m.color.set(0x05050a); return m; }
     if (src.map) {
       // Poly Haven stone, ground and rock: keep the colour and normal maps, darken them to the realm's mood, matte
       const m = src.clone();
@@ -305,11 +320,52 @@ export class Realm {
     this.tableSettled = settled;
   }
 
+  private glows: THREE.Sprite[] = [];
+
+  /**
+   * Flames that glow and light the hall: an additive glow over every flame in the model (found by clustering the fire
+   * mesh's vertices), and the four practical lights on the lowest ones (the braziers), or round the lava moat.
+   */
+  private lightFlames(id: RealmId): void {
+    const p = PRESETS[id], model = this.group.children.find((c) => c !== this.dressing);
+    const spots = new Map<string, { sum: THREE.Vector3; n: number }>();
+    const v = new THREE.Vector3();
+    model?.traverse((o) => {
+      if (!(o instanceof THREE.Mesh) || !/fire/.test((o.material as THREE.Material).name)) return;
+      const pos = o.geometry.getAttribute('position');
+      o.updateWorldMatrix(true, false);
+      for (let i = 0; i < pos.count; i++) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
+        const key = `${Math.round(v.x / 1.5)},${Math.round(v.z / 1.5)}`;
+        const s = spots.get(key) ?? { sum: new THREE.Vector3(), n: 0 };
+        s.sum.add(v); s.n++; spots.set(key, s);
+      }
+    });
+    const flames = [...spots.values()].map((s) => s.sum.divideScalar(s.n));
+    const mat = new THREE.SpriteMaterial({ map: glowTexture(), color: p.practical.color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false, opacity: 0.85 });
+    this.glows = flames.map((f) => { const g = new THREE.Sprite(mat); g.position.copy(f); g.position.y += 0.15; g.scale.setScalar(f.y < 3 ? 2.6 : 2.0); g.userData.base = g.scale.x; return g; });
+    if (this.glows.length) this.dressing.add(...this.glows);
+    // the practical lights: on the lowest flames (braziers), else round the lava moat
+    const low = flames.filter((f) => f.y < 3).sort((a, c) => Math.atan2(a.z, a.x) - Math.atan2(c.z, c.x)).slice(0, 4);
+    const ring = (k: number): THREE.Vector3 => new THREE.Vector3(Math.cos(Math.PI / 4 + k * Math.PI / 2) * 7.6, 0.4, Math.sin(Math.PI / 4 + k * Math.PI / 2) * 7.6);
+    const at = low.length ? low.map((f) => f.clone().setY(f.y + 0.6)) : [0, 1, 2, 3].map(ring);
+    this.stage.practicals.forEach((l, i) => {
+      const spot = at[i];
+      l.color.set(p.practical.color);
+      l.userData.base = spot ? p.practical.intensity : 0;
+      l.intensity = l.userData.base;
+      if (spot) l.position.copy(spot);
+    });
+  }
+
   private update(dt: number, t: number): void {
     this.fitTable(dt);
     const fog = this.stage.scene.fog as THREE.FogExp2;
     for (const m of this.animated) { m.uniforms.time.value = t; (m.uniforms.fogColor.value as THREE.Color).copy(fog.color); m.uniforms.fogDensity.value = fog.density; }
     for (let i = 0; i < this.fires.length; i++) { const heat = this.fires[i].userData.heat ?? 3.0; this.fires[i].emissiveIntensity = heat * (1 + 0.27 * Math.sin(t * 7 + i * 1.7) * Math.sin(t * 3.1 + i)); }
+    // flames flicker: their glows breathe and the practical lights waver about 20%
+    for (let i = 0; i < this.glows.length; i++) this.glows[i].scale.setScalar(this.glows[i].userData.base * (1 + 0.12 * Math.sin(t * 6.3 + i * 2.1) * Math.sin(t * 2.7 + i)));
+    this.stage.practicals.forEach((l, i) => { l.intensity = (l.userData.base ?? 0) * (1 + 0.2 * Math.sin(t * 7.1 + i * 1.9) * Math.sin(t * 3.3 + i * 0.7)); });
   }
 }
 
@@ -452,4 +508,35 @@ function lava(): THREE.ShaderMaterial {
         float d = length(cameraPosition - vW); float f = 1.0 - exp(-fogDensity * fogDensity * d * d);
         gl_FragColor = vec4(mix(c, fogColor, f), 1.0); }`,
   });
+}
+
+/** A ring of mountain ridges on the horizon: an open band whose top edge is layered noise, unlit, one colour. */
+function ridges(radius: number, low: number, high: number, color: number, seed: number): THREE.Mesh {
+  const n = 160, pos: number[] = [], idx: number[] = [];
+  const noise = (a: number): number => 0.5 + 0.28 * Math.sin(a * 3 + seed) + 0.14 * Math.sin(a * 7.3 + seed * 2.1) + 0.08 * Math.sin(a * 17.9 + seed * 3.7);
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI * 2, x = Math.sin(a) * radius, z = Math.cos(a) * radius;
+    pos.push(x, -3, z, x, low + (high - low) * Math.max(0, Math.min(1, noise(a))), z);
+    if (i < n) { const k = i * 2; idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3); }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, fog: false }));
+  m.renderOrder = -1;
+  return m;
+}
+
+/** A soft radial glow (white to clear) for flame halos, built in memory (the worker has no DOM canvas). */
+let glowTex: THREE.DataTexture | null = null;
+function glowTexture(): THREE.DataTexture {
+  if (glowTex) return glowTex;
+  const s = 64, data = new Uint8Array(s * s * 4);
+  for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) {
+    const d = Math.hypot(x - s / 2 + 0.5, y - s / 2 + 0.5) / (s / 2), a = Math.max(0, 1 - d) ** 2.2;
+    data.set([255, 255, 255, Math.round(a * 255)], (y * s + x) * 4);
+  }
+  glowTex = new THREE.DataTexture(data, s, s);
+  glowTex.needsUpdate = true;
+  return glowTex;
 }
