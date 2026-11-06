@@ -22,6 +22,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 export type Mood = 'menu' | 'battle';
@@ -39,6 +40,7 @@ export class Stage {
   readonly hemi = new THREE.HemisphereLight(0x2a2f45, 0x080608, 0.5);
   readonly floorPlate: THREE.Mesh<THREE.CircleGeometry, THREE.MeshStandardMaterial>;
   private readonly composer: EffectComposer;
+  private fxaa: ShaderPass | null = null;
   private readonly bloom: UnrealBloomPass;
   /** Ground-contact shading (desktop only, half resolution): props and units sit in the floor instead of on it. */
   private readonly gtao: GTAOPass | null;
@@ -53,7 +55,7 @@ export class Stage {
   private readonly timer = new THREE.Timer();
   private readonly updaters: Array<(dt: number, t: number) => void> = [];
   /** The title camera looks across the arena (statues, pillars, the far rim), not down into the dais. */
-  private readonly menuTarget = new THREE.Vector3(0, 3.9, 0);
+  private readonly menuTarget = new THREE.Vector3(0, 3.3, 0);   // aimed lower: the frame was 40% empty sky
   /** In battle the camera aims 1.2 m in front of the table, so the table sits under the HTML board (above mid-screen). */
   private readonly battleTarget = new THREE.Vector3(0, 0.6, 1.2);
   private readonly battleSpot = new THREE.Vector3();
@@ -139,9 +141,9 @@ export class Stage {
     this.motes = this.moteField(opts.coarse ? 150 : 300);   // sparse: a dense field read as uniform noise over the statues
     this.scene.add(this.sky, this.stars, this.motes);
 
-    // 4x MSAA on the scene target (the renderer's own antialias doesn't reach a composer): without it every edge
-    // stairsteps on a 1x display. Phones render at 2x and up, and skip it.
-    this.composer = new EffectComposer(this.renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: opts.coarse ? 0 : 4 }));
+    // anti-aliasing is an FXAA pass after tone mapping (see below), not MSAA on this float target: a multisampled
+    // half-float target took the stage's setup from 2 s to 10-14 s on an integrated GPU, past the page's timeout
+    this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.gtao = opts.coarse ? null : new GTAOPass(this.scene, this.camera, 256, 256);
     if (this.gtao) {
@@ -154,6 +156,8 @@ export class Stage {
     this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.45, 0.4, 1.0);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
+    // FXAA on the tone-mapped image, so edges don't stairstep on a 1x display (phones render at 2x and up, and skip it)
+    if (!opts.coarse) { this.fxaa = new ShaderPass(FXAAShader); this.composer.addPass(this.fxaa); }
     // grading after tone mapping, in display space: the shadows take the realm's hue, the edges fall away, a fine grain
     this.grade = new ShaderPass({
       uniforms: { tDiffuse: { value: null }, tint: { value: new THREE.Color(1, 1, 1) }, vig: { value: 0.32 }, grain: { value: 0.025 }, time: { value: 0 } },
@@ -295,13 +299,14 @@ export class Stage {
     this.renderer.setSize(w, h, false);
     this.composer.setPixelRatio(ratio);
     this.composer.setSize(w, h);
+    (this.fxaa?.material.uniforms.resolution.value as THREE.Vector2 | undefined)?.set(1 / (w * ratio), 1 / (h * ratio));
     this.bloom.resolution.set(w / 2, h / 2);
     // ambient occlusion at half resolution: soft contact shading needs no more, and it halves the cost
     this.gtao?.setSize(Math.max(1, Math.round((w * ratio) / 2)), Math.max(1, Math.round((h * ratio) / 2)));
     this.camera.aspect = w / h;
     // portrait phones: open the field of view so the arena still fills the frame
     // the title looks down the hall through a longer lens, so the statues fill the frame instead of the empty floor
-    this.camera.fov = this.camera.aspect < 1 ? Math.min(72, 42 / this.camera.aspect) : this.mood === 'menu' ? 33 : 42;
+    this.camera.fov = this.camera.aspect < 1 ? Math.min(72, 42 / this.camera.aspect) : this.mood === 'menu' ? 29 : 42;
     // the title screen on a wide screen: slide the picture right, clear of the menu column (as Rapture Chess does)
     const shift = this.mood === 'menu' && this.camera.aspect > 1.25 ? Math.round(w * 0.12) : 0;
     if (shift) this.camera.setViewOffset(w, h, -shift, 0, w, h); else this.camera.clearViewOffset();

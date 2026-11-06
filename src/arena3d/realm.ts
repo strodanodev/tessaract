@@ -45,27 +45,28 @@ const PRESETS: Record<RealmId, Preset> = {
     // fog in the horizon's own blue (it was near-black under a teal horizon: a hard seam where the ground ended)
     sky: { top: 0x060d16, bottom: 0x14283a, glow: 0x2f6f84, fog: 0x1b3346, fogDensity: 0.026 },
     aurora: 1, stars: 0.9,
-    key: { color: 0xfff3e0, intensity: 2.4, position: [6, 12, 5] },
+    // moonlight: a cool key and half the old fill, so the braziers' warm light is what models the stone
+    key: { color: 0xa9bcff, intensity: 1.6, position: [8, 14, -4] },
     rim: { color: 0x7fe6ff, intensity: 60 },
-    hemi: { sky: 0x3a6878, ground: 0x14120e, intensity: 0.6 },
-    envIntensity: 0.6, floorRadius: 9.05,
+    hemi: { sky: 0x3a6878, ground: 0x14120e, intensity: 0.3 },
+    envIntensity: 0.45, floorRadius: 9.05,
     motes: { color: 0xbff6ff, rise: 0.12, size: 1, opacity: 0.55 },
     grade: 0xd2f0ff,
     ridges: [0x0a141e, 0x132636],
-    practical: { color: 0xff9a3c, intensity: 16 },
+    practical: { color: 0xff8a3d, intensity: 42 },
   },
   underworld: {
     // the fog is the horizon's own red and thick enough that the crater floor melts into it, with no hard edge
-    sky: { top: 0x050102, bottom: 0x2a0806, glow: 0x7a1a08, fog: 0x3c0c06, fogDensity: 0.03 },
+    sky: { top: 0x0d0304, bottom: 0x3a0c07, glow: 0x8a2008, fog: 0x3c0c06, fogDensity: 0.03 },
     aurora: 0, stars: 0.25,
     key: { color: 0xffd0b0, intensity: 1.8, position: [-5, 10, -6] },
     rim: { color: 0xff5a2a, intensity: 70 },
-    hemi: { sky: 0x4a1a10, ground: 0x200404, intensity: 0.7 },
+    hemi: { sky: 0x4a1a10, ground: 0x200404, intensity: 0.4 },
     envIntensity: 0.5, floorRadius: 0,
     motes: { color: 0xff7a2a, rise: 0.55, size: 1.2, opacity: 0.9 },
     grade: 0xffd2c0,
     ridges: [0x0e0302, 0x1c0504],
-    practical: { color: 0xff5a1a, intensity: 12 },
+    practical: { color: 0xff5a1a, intensity: 34 },
   },
 };
 
@@ -257,7 +258,7 @@ export class Realm {
       m.emissiveIntensity = m.userData.heat;
       m.color.set(0x1a0805);
       if (!/fire/.test(n)) m.emissive.set(0xff2a00);
-      else m.emissive.set(0xff7424);   // the source's pale gold tone-mapped to a beige egg; orange stays a flame   // embers glow a deep orange: brighter or paler, AgX washes them to salmon
+      else { m.emissive.set(0xff7424); m.visible = false; }   // the modelled cone read as a clay egg: flame sprites replace it   // embers glow a deep orange: brighter or paler, AgX washes them to salmon
       fires.push(m);
       return m;
     }
@@ -281,7 +282,7 @@ export class Realm {
     // the untextured surfaces get weathering (see weather()), or they read as flat greybox next to the photo stone
     if (/banner/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x14284a, roughness: 0.85, metalness: 0, side: THREE.DoubleSide }), 5, 0.35, 0.2, 0.25);
     if (/gold/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0xffbf5e, roughness: 0.42, metalness: 1, envMapIntensity: 1.2 }), 3, 0.3, 0.35, 0.3);   // rough enough not to shimmer
-    if (/obsidian/.test(n)) return weather(new THREE.MeshPhysicalMaterial({ color: 0x08060a, roughness: 0.4, metalness: 0.2, clearcoat: 0.35, clearcoatRoughness: 0.35, envMapIntensity: 0.6 }), 1.4, 0.55, 0.3, 0.15);   // volcanic glass, dark: glossier streaks read as melted chocolate
+    if (/obsidian/.test(n)) return weather(new THREE.MeshPhysicalMaterial({ color: 0x040306, roughness: 0.4, metalness: 0.2, clearcoat: 0.35, clearcoatRoughness: 0.35, envMapIntensity: 0.6 }), 1.4, 0.55, 0.3, 0.15);   // volcanic glass, dark: glossier streaks read as melted chocolate
     if (/statue|chrome|accent/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'valhalla' ? 0x7c8687 : 0x5e4c48, roughness: 0.82, metalness: 0.05, envMapIntensity: 0.4 }), 2.6, 0.45, 0.45, 0.55);
     if (/bone/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: id === 'underworld' ? 0x56483a : 0x80735c, roughness: 0.82, metalness: 0 }), 2.2, 0.6, 0.75, 0.6);   // soot-stained, or it reads as flat beige
     if (/basalt/.test(n)) return weather(new THREE.MeshStandardMaterial({ color: 0x15111a, roughness: 0.9, metalness: 0.08 }), 1.6, 0.5, 0.3, 0.55);
@@ -322,6 +323,7 @@ export class Realm {
   }
 
   private glows: THREE.Sprite[] = [];
+  private flames: THREE.Sprite[] = [];
 
   /** A copy of the loaded model's first textured material whose name matches, for props built in code. */
   private textured(name: RegExp): THREE.MeshStandardMaterial | null {
@@ -356,7 +358,10 @@ export class Realm {
     const flames = [...spots.values()].map((s) => s.sum.divideScalar(s.n));
     const mat = new THREE.SpriteMaterial({ map: glowTexture(), color: p.practical.color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false, opacity: 0.85 });
     this.glows = flames.map((f) => { const g = new THREE.Sprite(mat); g.position.copy(f); g.position.y += 0.15; g.scale.setScalar(f.y < 3 ? 2.6 : 2.0); g.userData.base = g.scale.x; return g; });
-    if (this.glows.length) this.dressing.add(...this.glows);
+    // the flame itself: an additive teardrop, white-hot at the root and orange at the tips, flickering tall and thin
+    const flameMat = new THREE.SpriteMaterial({ map: flameTexture(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false });
+    this.flames = flames.map((f) => { const s = new THREE.Sprite(flameMat); const k = f.y < 3 ? 1 : 1.25; s.center.set(0.5, 0.08); s.position.copy(f).setY(f.y - 0.25 * k); s.scale.set(0.8 * k, 1.5 * k, 1); s.userData.k = k; return s; });
+    if (this.glows.length) this.dressing.add(...this.glows, ...this.flames);
     // the practical lights: on the lowest flames (braziers), else round the lava moat
     const low = flames.filter((f) => f.y < 3).sort((a, c) => Math.atan2(a.z, a.x) - Math.atan2(c.z, c.x)).slice(0, 4);
     const ring = (k: number): THREE.Vector3 => new THREE.Vector3(Math.cos(Math.PI / 4 + k * Math.PI / 2) * 7.6, 0.4, Math.sin(Math.PI / 4 + k * Math.PI / 2) * 7.6);
@@ -377,6 +382,7 @@ export class Realm {
     for (let i = 0; i < this.fires.length; i++) { const heat = this.fires[i].userData.heat ?? 3.0; this.fires[i].emissiveIntensity = heat * (1 + 0.27 * Math.sin(t * 7 + i * 1.7) * Math.sin(t * 3.1 + i)); }
     // flames flicker: their glows breathe and the practical lights waver about 20%
     for (let i = 0; i < this.glows.length; i++) this.glows[i].scale.setScalar(this.glows[i].userData.base * (1 + 0.12 * Math.sin(t * 6.3 + i * 2.1) * Math.sin(t * 2.7 + i)));
+    for (let i = 0; i < this.flames.length; i++) { const f = this.flames[i], k = f.userData.k, w = Math.sin(t * 11 + i * 2.3) * Math.sin(t * 4.1 + i); f.scale.set(0.8 * k * (1 - 0.08 * w), 1.5 * k * (1 + 0.16 * w), 1); }
     this.stage.practicals.forEach((l, i) => { l.intensity = (l.userData.base ?? 0) * (1 + 0.2 * Math.sin(t * 7.1 + i * 1.9) * Math.sin(t * 3.3 + i * 0.7)); });
   }
 }
@@ -551,4 +557,21 @@ function glowTexture(): THREE.DataTexture {
   glowTex = new THREE.DataTexture(data, s, s);
   glowTex.needsUpdate = true;
   return glowTex;
+}
+
+/** A flame: a teardrop, widest a fifth of the way up, white-yellow at the root fading to orange tips and clear edges. */
+let flameTex: THREE.DataTexture | null = null;
+function flameTexture(): THREE.DataTexture {
+  if (flameTex) return flameTex;
+  const w = 64, h = 128, data = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const v = y / (h - 1), u = Math.abs(x - w / 2 + 0.5) / (w / 2);
+    const half = Math.max(0.001, Math.sin(Math.min(1, v / 0.2) * Math.PI / 2) * (1 - v) ** 0.85);
+    const edge = Math.max(0, 1 - u / half), body = edge ** 1.4 * (1 - v ** 3);
+    const heat = Math.max(0, 1 - v * 1.4) * edge;   // hottest low and central
+    data.set([255, Math.round(120 + 120 * heat), Math.round(40 + 170 * heat * heat), Math.round(Math.min(1, body * 1.3) * 255)], (y * w + x) * 4);
+  }
+  flameTex = new THREE.DataTexture(data, w, h);
+  flameTex.needsUpdate = true;
+  return flameTex;
 }
