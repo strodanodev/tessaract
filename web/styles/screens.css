@@ -264,7 +264,13 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(2.5px) brightness(0.86
 .meta-body.narrow { max-width: 620px; }
 .meta-panel .panel-body.stack, .meta-panel .stack { display: grid; gap: 14px; }
 /* the Gauntlet ladder: eight foe portraits; won ones gilded, the next one lit, the rest in shadow */
-.road { list-style: none; margin: 0; padding: 10px 8px 2px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; }
+.road { list-style: none; margin: 0; padding: 10px 8px 2px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)) minmax(0, 1.3fr); gap: 16px; align-items: end; position: relative; }
+/* the road itself: a gilt path running behind the stages, and the final foe raised, framed in gold, crowned */
+.road::before { content: ''; position: absolute; left: 3%; right: 6%; top: 44%; height: 3px; border-radius: 2px; background: linear-gradient(90deg, rgba(255, 201, 94, 0.15), rgba(255, 201, 94, 0.6) 50%, rgba(255, 201, 94, 0.9)); box-shadow: 0 0 10px rgba(255, 201, 94, 0.45); }
+.stage { z-index: 1; }
+.stage:last-child .st-face { border: 2px solid var(--gold-1); box-shadow: 0 0 0 3px rgba(255, 201, 94, 0.2), 0 0 34px rgba(255, 190, 80, 0.5), 0 16px 34px rgba(0, 0, 0, 0.6); }
+.stage:last-child .st-face::after { content: ''; position: absolute; top: 5px; left: 50%; width: 30%; aspect-ratio: 1.6; transform: translateX(-50%); z-index: 2; clip-path: polygon(0 100%, 0 25%, 25% 60%, 50% 0, 75% 60%, 100% 25%, 100% 100%); background: linear-gradient(180deg, #fff2c4, var(--gold-2)); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.7)); }
+.stage:last-child .st-n { color: var(--gold-1); letter-spacing: 0.24em; }
 .stage { position: relative; display: grid; justify-items: center; gap: 4px; text-align: center; min-width: 0; }
 .st-face { position: relative; width: 100%; aspect-ratio: 3 / 4; border-radius: 6px; overflow: hidden; display: grid; place-items: center; color: var(--dim); border: 1px solid var(--line-strong);
   background: radial-gradient(circle at 50% 35%, #2a2133, #0e0b13 75%); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5); transition: transform 0.3s var(--ease-out), box-shadow 0.3s; }
@@ -326,6 +332,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(2.5px) brightness(0.86
 @media (max-width: 760px) {
   /* all eight foes, in two rows of four */
   .road { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 10px; padding: 10px 4px 4px; }
+  .road::before { display: none; }   /* two rows: a straight path would cut through them */
   /* phone: the card and the name side by side, the tiles across the full width under them */
   .profile-hero { grid-template-columns: 84px minmax(0, 1fr); gap: 6px 14px; padding: 14px; align-items: start; }
   .ph-body { display: contents; }
