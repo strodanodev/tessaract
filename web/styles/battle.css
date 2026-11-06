@@ -181,6 +181,8 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
 .hand .tcard.can { box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55), 0 0 0 2px var(--ok), 0 0 18px rgba(99, 227, 145, 0.55); }
 .hand .tcard.dead { filter: brightness(0.8) saturate(0.7); cursor: default; }
 .hand .tcard:hover, .hand .tcard:focus-visible { z-index: 5; transform: translateY(calc(var(--w) * -0.2)) scale(1.12); }
+/* with a mouse, the card under it rises to reading size, above its neighbours and their gems (touch holds to read) */
+@media (pointer: fine) { .hand .tcard:hover { transform: translateY(calc(var(--w) * -0.5)) scale(1.5); z-index: 8; } }
 /* a picked card waits for a target: a short lift, so your plate and life stay in view (hover still reads it full size) */
 .hand .tcard.picked { z-index: 6; transform: translateY(calc(var(--w) * -0.1)) scale(1.05); box-shadow: 0 22px 40px rgba(0, 0, 0, 0.6), 0 0 0 3px var(--gold-0), 0 0 34px rgba(255, 201, 94, 0.85); }
 
