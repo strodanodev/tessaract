@@ -63,6 +63,7 @@ export class Stage {
   private shakeLeft = 0;
   private frame = 0;
   private frames = 0;
+  private renderWaiters: Array<() => void> = [];
   private sample = 0;
   private lowStreak = 0;
   private workMs = 0;
@@ -92,8 +93,12 @@ export class Stage {
     this.shadows = !opts.coarse;
     if (this.shadows) {
       this.renderer.shadowMap.enabled = true;
-      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      this.renderer.shadowMap.type = THREE.PCFShadowMap;   // PCFSoft is gone in r18x (three falls back to this anyway)
       this.renderer.shadowMap.autoUpdate = false;
+      // render the (empty) map on the first frame too: until a shadow map exists, every material that receives shadows
+      // samples a placeholder of the wrong format, WebGL drops the draw ("mismatch between texture format and sampler
+      // type"), and the hall is missing while the sky and floor still show
+      this.renderer.shadowMap.needsUpdate = true;
       this.keyLight.castShadow = true;
       this.keyLight.shadow.mapSize.set(2048, 2048);
       const c = this.keyLight.shadow.camera;
@@ -335,6 +340,15 @@ export class Stage {
     else if (this.stats.fps < 24) this.onTooSlow?.();
   }
 
+  /**
+   * Resolves once `n` more frames have been drawn. A newly shown model's first frame can stall for seconds while the
+   * GPU compiles its shader variants (the mirror's, the shadow pass's), and until it ends the canvas still holds the
+   * frame before, an empty stage: wait for this before letting anyone see the canvas.
+   */
+  afterFrames(n = 2): Promise<void> {
+    return n <= 0 ? Promise.resolve() : new Promise<void>((resolve) => this.renderWaiters.push(resolve)).then(() => this.afterFrames(n - 1));
+  }
+
   start(): void {
     this.renderer.setAnimationLoop(() => {
       this.timer.update();
@@ -353,6 +367,7 @@ export class Stage {
       this.grade.uniforms.time.value = t;
       this.composer.render(dt);
       this.workMs += performance.now() - t0;
+      if (this.renderWaiters.length) for (const w of this.renderWaiters.splice(0)) w();
       const info = this.renderer.info.render;
       this.stats.drawCalls = info.calls;
       this.stats.triangles = info.triangles;

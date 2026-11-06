@@ -42,6 +42,8 @@ async function init(m: Extract<In, { type: 'init' }>): Promise<void> {
   if (!(await realm.load(m.realm))) { stage.dispose(); stage = null; post({ type: 'failed', reason: `arena model ${m.realm} unavailable` }); return; }
   // the page may have switched realm meanwhile: report ready only once a model is actually showing
   await realm.shown();
+  // and only once a frame with it has been drawn (its first can stall on shader compiles, showing the empty stage)
+  await Promise.race([stage.afterFrames(2), new Promise((r) => setTimeout(r, 8000))]);   // (a hidden tab draws nothing)
   post({ type: 'ready', gpu, ms: { stage: Math.round(t1 - t0), realm: Math.round(performance.now() - t1) } });
   setInterval(() => { if (stage) post({ type: 'stats', stats: stage.getStats() }); }, 2000);
 }
