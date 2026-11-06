@@ -275,7 +275,8 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .stage.next .st-face img { filter: none; }
 .stage.lost .st-face { border-color: var(--danger); }
 .stage.lost .st-face img { filter: grayscale(0.4) brightness(0.55) sepia(0.6) hue-rotate(-30deg) saturate(2); }
-.road.preview .st-face img { filter: grayscale(1) brightness(0.5) contrast(1.15); }
+.road.preview .st-face img { filter: grayscale(0.35) brightness(0.62) contrast(1.1); }   /* the road ahead: dimmed, still in colour */
+.road.preview .stage:first-child .st-face img { filter: none; }   /* the first foe is the one you meet next */
 .road.preview .stage:last-child .st-face { border-color: var(--gold-3); }
 .st-mark { position: absolute; right: 6px; top: 6px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: #241604; background: radial-gradient(circle at 50% 30%, #ffe7a8, #c98a28 75%); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
 .st-mark svg { width: 14px; height: 14px; }
