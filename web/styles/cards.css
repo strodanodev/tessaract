@@ -79,7 +79,7 @@ button.tcard:disabled { cursor: default; filter: saturate(0.4) brightness(0.6); 
 }
 .u-kw { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; flex-wrap: wrap; justify-content: center; width: 112%; gap: 2px; }
 /* your lane's tags sit inside the frame's top: above it they ran into the foe's attack and health gems */
-.my-lane .u-kw { top: 3px; }
+.unit .u-kw { top: 3px; }   /* both lanes: above the frame they ran into the rune band and the foe's gems */
 .u-kw i { font-style: normal; font-size: clamp(7px, calc(var(--u, 84px) * 0.1), 9px); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 1px 4px; border-radius: 2px; color: #201404; background: var(--gold-1); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); white-space: nowrap; }
 /* guard: a shield-shaped gilded border; shield: a bubble; tired: dimmed */
 .unit.guard .u-ring { box-shadow: 0 10px 22px rgba(0, 0, 0, 0.6), 0 0 0 3px #c9c2b0, 0 0 0 5px rgba(0, 0, 0, 0.6), 0 0 18px rgba(255, 240, 200, 0.35); border-radius: 30% 30% 46% 46% / 22% 22% 46% 46%; }

@@ -314,8 +314,8 @@ app.flows = {
     else buttons = [{ text: "Rematch", icon: "swords", primary: true, onClick: () => void startMatch(last.champion, last.deck, last.opts) }, watchReplay, { text: "New champion", icon: "user", onClick: async () => { match.detach(); resetStack(); await go("home", { push: false }); await app.flows.choose("practice"); } }, menu];
     match.result.show({
       outcome, headline, sub,
-      numbers: puzzleState ? [[session.actions ?? 0, "actions"], [tally.dealt, "to their champion"], [tally.played, "cards played"], [tally.kills, "foes felled"]]
-        : [[s.turnNo, "turns"], [tally.dealt, "to their champion"], [tally.played, "cards played"], [tally.kills, "foes felled"]],
+      numbers: puzzleState ? [[session.actions ?? 0, "actions"], [tally.dealt, "champion damage"], [tally.played, "cards played"], [tally.kills, "foes felled"]]
+        : [[s.turnNo, "turns"], [tally.dealt, "champion damage"], [tally.played, "cards played"], [tally.kills, "foes felled"]],
       champion: watching ? null : champion,
       championNote: kind === "gauntlet" ? context.detail : undefined,
       buttons,

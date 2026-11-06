@@ -132,7 +132,9 @@ export class Stage {
     this.motes = this.moteField(opts.coarse ? 260 : 640);
     this.scene.add(this.sky, this.stars, this.motes);
 
-    this.composer = new EffectComposer(this.renderer);
+    // 4x MSAA on the scene target (the renderer's own antialias doesn't reach a composer): without it every edge
+    // stairsteps on a 1x display. Phones render at 2x and up, and skip it.
+    this.composer = new EffectComposer(this.renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: opts.coarse ? 0 : 4 }));
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.gtao = opts.coarse ? null : new GTAOPass(this.scene, this.camera, 256, 256);
     if (this.gtao) {

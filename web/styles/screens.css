@@ -5,7 +5,7 @@
 #ui { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
 /* behind a menu page the level is a soft backdrop, not a scene to read; the title and the battle show it sharp */
 #arena { transition: filter 0.5s ease-out; }
-body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) saturate(0.9); }
+body:has(#ui > .page:not([hidden])) #arena { filter: blur(2.5px) brightness(0.86) saturate(0.95); }
 .screen { position: absolute; inset: 0; pointer-events: auto; }
 .screen.in { animation: screenIn 0.45s var(--ease-out) both; }
 .screen.out { animation: screenOut 0.18s ease-in both; pointer-events: none; }
@@ -120,7 +120,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 /* big screens: the gauntlet, puzzle and profile panels grow with the screen instead of floating small in the middle */
 @media (min-width: 1500px) and (min-height: 900px) { .page-wrap > * { zoom: 1.2; } }
 @media (min-width: 1800px) and (min-height: 1000px) { .page-wrap > * { zoom: 1.35; } }
-.page-scrim { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 30%, rgba(5, 4, 9, 0.6)), linear-gradient(180deg, rgba(5, 4, 9, 0.92), rgba(5, 4, 9, 0.76) 30%, rgba(5, 4, 9, 0.8) 70%, rgba(5, 4, 9, 0.95)); }
+.page-scrim { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 35%, rgba(5, 4, 9, 0.55)), linear-gradient(180deg, rgba(5, 4, 9, 0.85), rgba(5, 4, 9, 0.42) 26%, rgba(5, 4, 9, 0.5) 70%, rgba(5, 4, 9, 0.88)); }   /* the arena shows through behind the pages */
 .page-head { position: relative; z-index: 1; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: calc(var(--safe-t) + 16px) calc(var(--safe-r) + 28px) 12px calc(var(--safe-l) + 28px); }
 .page-title { display: grid; gap: 2px; min-width: 0; }
 .page-title h1 { margin: 0; font-size: clamp(20px, 2.6vw, 30px); letter-spacing: 0.12em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -177,6 +177,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 /* laptop heights: a smaller hero card and tighter rows, so the battlefield and bot choices clear the Enter dock */
 @media (max-height: 820px) and (min-width: 901px) {
   .cd-card { width: min(104px, 14vh); margin-top: 10px; }
+  .cd-card .ccard .sub { display: none; }   /* too narrow for "Water · Alliance": the panel below says it */
   .cd-body { gap: 6px; padding-top: 6px; }
   .cd-name { font-size: 20px; }
   .cd-power { padding: 7px 10px; }
