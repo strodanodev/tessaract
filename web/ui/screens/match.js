@@ -188,6 +188,8 @@ export function matchScreen(app) {
     const f = h("span", { class: `float ${kind}`, text });
     p.floats.append(f);
     setTimeout(() => f.remove(), 1300);
+    // the portrait takes the blow (or the healing): a flash in red or green, restarted on every hit
+    p.portrait.classList.remove("hit", "healed"); void p.portrait.offsetWidth; p.portrait.classList.add(kind === "dmg" ? "hit" : "healed");
   }
   function fallen(def, foeSide) {
     const e = h("div", { class: `kf${foeSide ? "" : " mine"}` }, app.artOf(def) ? h("img", { src: app.artOf(def), alt: "" }) : icon("sword"), icon("skull"), h("span", null, h("b", { text: def.name }), " fell"));
@@ -382,12 +384,12 @@ export function matchScreen(app) {
     if (picked) {
       const lines = app.cards.describe(picked);
       pickInfo.replaceChildren(h("b", { text: picked.name }), lines.length ? ` · ${lines.join(" · ")}` : "");
-    } else pickInfo.textContent = watching ? "" : "Tap a card to play it · hold it to read it";
+    } else pickInfo.textContent = watching || s.turnNo > 3 ? "" : "Tap a card to play it · hold it to read it";   // a first-turns hint, not a fixture
     requestAnimationFrame(() => { ring.refresh(); fitBoard(); aim.update(pick ? el.querySelector(".hand .tcard.picked, .unit.picked, .power.picked") : null); });   // after layout: the rune circle, the 3D table, the arrow
 
     endBtn.disabled = !myTurn;
     endBtn.classList.toggle("ready", myTurn && !moves.some((m) => m.op !== Op.End));
-    const watchingTurn = watching ? `${possessive(playerName(s.p[s.turn].id))} turn` : null;
+    const watchingTurn = replaying() ? `Replay · turn ${s.turnNo}` : watching ? `${possessive(playerName(s.p[s.turn].id))} turn` : null;
     const outcome = s.winner === 2 ? "A draw" : s.winner >= 0 ? `${watching ? playerName(s.p[s.winner].id) : s.winner === meIdx ? "You" : "Opponent"} won` : "";
     medallion.querySelector(".md-text").textContent = s.over ? outcome : watchingTurn ?? (myTurn ? `Your turn · ${s.turnNo}` : `Enemy turn · ${s.turnNo}`);
     medallion.classList.toggle("yours", myTurn);

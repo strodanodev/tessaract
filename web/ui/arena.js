@@ -63,6 +63,9 @@ export function createArena(root) {
   const brazier = (n) => h("div", { class: `ar-brazier b${n}` }, h("i", { class: "halo" }), h("i", { class: "bowl" }), h("i", { class: "flame" }));
   const floor = h("div", { class: "ar-floor" }, h("div", { class: "ar-dais" }, h("i", { class: "moat" }), h("i", { class: "ring" }), h("i", { class: "top" }), h("i", { class: "sigil" })));
   let sparks = embers(22, REALMS.valhalla.embers);
+  // a still of the 3D arena from the menu camera, over the drawn level: what shows until the live arena takes over,
+  // and where it can't run at all (assets/arena/arena.json names one per realm under "posters"; none, no poster)
+  const poster = h("div", { class: "ar-poster" });
   root.replaceChildren(
     layer("ar-sky"), layer("ar-stars"), h("div", { class: "ar-aurora" }, h("i"), h("i")), layer("ar-glow"),
     layer("ar-far", VH_FAR + UW_FAR),
@@ -71,9 +74,21 @@ export function createArena(root) {
     brazier(3), brazier(4),
     layer("ar-near", VH_NEAR("l") + VH_NEAR("r") + UW_NEAR("l") + UW_NEAR("r")),
     brazier(1), brazier(2),
+    poster,
     sparks,
     layer("ar-shade"), layer("ar-vignette"));
   let three = null;   // the 3D arena once it runs (see upgrade)
+  let posters = {};
+  const showPoster = () => {
+    const file = posters[api.realm];
+    if (typeof file !== "string" || !/^[\w.-]+\.(webp|jpe?g|png)$/i.test(file)) { root.classList.remove("postered"); return; }
+    const url = new URL(`./assets/arena/${file}`, location.href).href;
+    const img = new Image();
+    // swap only once it has loaded (and if the realm hasn't moved on), so the level never flashes empty
+    img.onload = () => { if (posters[api.realm] === file) { poster.style.backgroundImage = `url("${url}")`; root.classList.add("postered"); } };
+    img.src = url;
+  };
+  fetch(new URL("./assets/arena/arena.json", location.href)).then((r) => (r.ok ? r.json() : null)).then((m) => { posters = m?.posters ?? {}; showPoster(); }, () => {});
   const api = {
     realm: "valhalla",
     mood: "menu",
@@ -84,6 +99,7 @@ export function createArena(root) {
       const next = embers(22, REALMS[id].embers);
       sparks.replaceWith(next);
       sparks = next;
+      showPoster();
       void three?.setRealm(id);
     },
     /** "menu" shows the level in full; "battle" dims it behind the board. */
@@ -137,7 +153,7 @@ export function createArena(root) {
             stop(); three = null; root.classList.remove("three"); root.classList.add("three-failed"); root.dataset.fallback = "too slow on this device";
           }
         };
-        setTimeout(() => reject(new Error("timed out")), 30000);
+        setTimeout(() => reject(new Error("timed out")), 45000);   // a slow GPU can take 20 s or more to compile it all; the CSS arena stays up meanwhile
       });
       worker.postMessage({ type: "init", canvas: offscreen, width: innerWidth, height: innerHeight, dpr: devicePixelRatio || 1, coarse: matchMedia("(pointer: coarse)").matches, still: matchMedia("(prefers-reduced-motion: reduce)").matches, base, realm: api.realm, mood: api.mood }, [offscreen]);
       const info = await ready;

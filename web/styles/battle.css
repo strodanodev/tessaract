@@ -30,6 +30,25 @@
 .pl-face > svg { width: 64%; height: 64%; }
 .pl-face.target { cursor: pointer; border-color: var(--danger); box-shadow: 0 0 0 3px rgba(255, 75, 58, 0.35), 0 0 26px rgba(255, 75, 58, 0.7); animation: aim 1.1s ease-in-out infinite; }
 @keyframes aim { 50% { box-shadow: 0 0 0 6px rgba(255, 75, 58, 0.15), 0 0 34px rgba(255, 75, 58, 0.9); } }
+/* the champion's portrait: a breathing rim light in its element, a flash when it is hit or healed */
+.pl-face { animation: heroBreath 4.5s ease-in-out infinite; }
+.pl-face.hit { animation: heroHit 0.55s ease-out, heroBreath 4.5s ease-in-out 0.55s infinite; }
+.pl-face.healed { animation: heroHeal 0.7s ease-out, heroBreath 4.5s ease-in-out 0.7s infinite; }
+.pl-face.target { animation: aim 1.1s ease-in-out infinite; }
+@keyframes heroBreath { 50% { box-shadow: 0 0 30px color-mix(in srgb, var(--el) 60%, transparent), 0 0 4px color-mix(in srgb, var(--el) 80%, transparent); } }
+@keyframes heroHit { 0% { filter: brightness(2.2) saturate(0.4); transform: translateX(-4px); box-shadow: 0 0 40px rgba(255, 60, 40, 0.95); } 30% { transform: translateX(4px); } 60% { transform: translateX(-2px); filter: brightness(1.2) sepia(0.5) hue-rotate(-30deg); } }
+@keyframes heroHeal { 0% { filter: brightness(1.6); box-shadow: 0 0 40px rgba(99, 227, 145, 0.95); } }
+/* desktop with room to spare: the champion is a framed hero portrait breaking out of its plate, not an icon */
+@media (min-width: 1200px) and (min-height: 900px) {
+  .pl-hero, .pl-face { width: 118px; height: 132px; }
+  .plate.top .pl-hero { margin: -6px 0 -58px; }
+  .plate.bottom .pl-hero { margin: -58px 0 -6px; }
+  .pl-face { border-radius: 50% 50% 14% 14% / 42% 42% 10% 10%; border-width: 3px; border-color: color-mix(in srgb, var(--el) 55%, var(--gold-1)); box-shadow: 0 0 0 2px #0b0910, 0 0 0 4px color-mix(in srgb, var(--gold-2) 70%, transparent), 0 14px 30px rgba(0, 0, 0, 0.65), 0 0 24px color-mix(in srgb, var(--el) 40%, transparent); }
+  .pl-face img { object-position: 50% 14%; }
+  .pl-life { right: -14px; bottom: -8px; min-width: 40px; height: 40px; font-size: 19px; }
+  @keyframes heroBreath { 50% { box-shadow: 0 0 0 2px #0b0910, 0 0 0 4px color-mix(in srgb, var(--gold-2) 70%, transparent), 0 14px 30px rgba(0, 0, 0, 0.65), 0 0 42px color-mix(in srgb, var(--el) 70%, transparent); } }
+}
+@media (prefers-reduced-motion: reduce) { .pl-face, .pl-face.hit, .pl-face.healed { animation: none; } }
 .pl-life { position: absolute; right: -12px; bottom: -6px; display: grid; place-items: center; min-width: 32px; height: 32px; padding: 0 4px; border-radius: 50% 50% 45% 45% / 40% 40% 60% 60%; font-family: var(--font-display); font-weight: 700; font-size: 16px; color: #fff; text-shadow: 0 1px 3px #000;
   background: radial-gradient(circle at 40% 30%, #ffb3a0, #d5301c 50%, #5a0a04 90%); box-shadow: 0 0 0 2px #0b0910, 0 4px 10px rgba(0, 0, 0, 0.6); }
 .plate.bottom .pl-life { background: radial-gradient(circle at 40% 30%, #c4e8ff, #2f7fe0 50%, #0b2a5e 90%); }
@@ -111,12 +130,12 @@
 .aim.on { opacity: 1; }
 .aim[data-mode='foe'] { --aim: #ff5a46; }
 .aim[data-mode='ally'] { --aim: #6fe39a; }
-.aim-glow { fill: none; stroke: var(--aim); stroke-width: 14; stroke-linecap: round; opacity: 0.22; filter: blur(5px); }
-.aim-line { fill: none; stroke: var(--aim); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 11; animation: aimFlow 0.5s linear infinite; filter: drop-shadow(0 0 4px var(--aim)); }
+.aim-glow { fill: none; stroke: var(--aim); stroke-width: 22; stroke-linecap: round; opacity: 0.3; filter: blur(6px); }
+.aim-line { fill: none; stroke: var(--aim); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 16 9; animation: aimFlow 0.5s linear infinite; filter: drop-shadow(0 0 4px var(--aim)); }
 .aim-head { fill: var(--aim); stroke: #1a0e04; stroke-width: 1.5; filter: drop-shadow(0 0 6px var(--aim)); }
 .aim-ring { fill: none; stroke: var(--aim); stroke-width: 2.5; opacity: 0; }
 .aim:not([data-mode='free']) .aim-ring { opacity: 0.9; animation: aimRing 0.9s ease-out infinite; transform-box: fill-box; transform-origin: center; }
-@keyframes aimFlow { to { stroke-dashoffset: -13; } }
+@keyframes aimFlow { to { stroke-dashoffset: -25; } }
 @keyframes aimRing { from { transform: scale(0.6); opacity: 0.95; } to { transform: scale(1.3); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .aim-line, .aim-ring { animation: none; } }
 /* the Underworld's runes burn like its table groove and lava, not Valhalla's ice blue */
@@ -129,8 +148,9 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
 .slot { flex: none; width: var(--u); height: calc(var(--u) * 1.22 * 0.92); align-self: center; border-radius: 48% 48% 14% 14% / 40% 40% 12% 12%; border: 1px solid rgba(255, 201, 94, 0.22);
   background: radial-gradient(circle at 50% 40%, rgba(255, 201, 94, 0.06), rgba(0, 0, 0, 0.4) 70%); box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.6); }
 /* the enemy's side of the table burns red, yours glows blue */
-.foe-lane .slot { border-color: rgba(255, 96, 64, 0.5); background: radial-gradient(circle at 50% 45%, rgba(255, 72, 40, 0.18), rgba(22, 4, 4, 0.6) 72%); box-shadow: inset 0 0 24px rgba(255, 60, 30, 0.4), 0 0 18px rgba(255, 60, 30, 0.22); }
-.my-lane .slot { border-color: rgba(86, 166, 255, 0.5); background: radial-gradient(circle at 50% 45%, rgba(70, 140, 255, 0.18), rgba(4, 8, 24, 0.6) 72%); box-shadow: inset 0 0 24px rgba(60, 130, 255, 0.4), 0 0 18px rgba(60, 130, 255, 0.22); }
+/* empty slots are etched sockets in the table, not lit tiles: the units are what should catch the eye */
+.foe-lane .slot { border-color: rgba(255, 110, 80, 0.2); background: radial-gradient(circle at 50% 42%, rgba(255, 90, 60, 0.07), rgba(10, 4, 4, 0.42) 75%); box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.55), inset 0 0 18px rgba(255, 70, 40, 0.1); }
+.my-lane .slot { border-color: rgba(110, 175, 255, 0.2); background: radial-gradient(circle at 50% 42%, rgba(80, 150, 255, 0.07), rgba(4, 6, 14, 0.42) 75%); box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.55), inset 0 0 18px rgba(70, 140, 255, 0.1); }
 .foe-lane { align-self: end; }
 .my-lane { align-self: start; }
 .lane-line { height: 2px; width: 70%; justify-self: center; background: linear-gradient(90deg, transparent, var(--gold-3), transparent); opacity: 0.55; box-shadow: 0 0 12px var(--gold-3); }
@@ -143,7 +163,7 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
 .unit.can { cursor: pointer; }
 .unit.can .u-ring { box-shadow: 0 10px 22px rgba(0, 0, 0, 0.6), 0 0 0 2px var(--ok), 0 0 20px rgba(99, 227, 145, 0.6); }
 .unit.can:hover { transform: var(--stand, rotateX(0deg)) translateY(-6px); }
-.unit.picked { transform: var(--stand, rotateX(0deg)) translateY(-12px) scale(1.06); }
+.unit.picked { transform: var(--stand, rotateX(0deg)) scale(1.06); }   /* grows in place: lifting, it covered the foe's gems across the lane */
 .unit.picked .u-ring { box-shadow: 0 16px 30px rgba(0, 0, 0, 0.6), 0 0 0 3px var(--gold-0), 0 0 30px rgba(255, 201, 94, 0.85); }
 .unit.target { cursor: pointer; }
 .unit.target .u-ring { box-shadow: 0 10px 22px rgba(0, 0, 0, 0.6), 0 0 0 3px var(--danger), 0 0 24px rgba(255, 75, 58, 0.8); animation: aimRing 1.1s ease-in-out infinite; }

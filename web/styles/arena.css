@@ -87,10 +87,13 @@
 .ar-vignette { inset: 0; background: radial-gradient(ellipse 75% 65% at 50% 52%, transparent 40%, rgba(3, 2, 6, 0.82) 100%); }
 /* the real arena (ui/arena.js upgrade): Rapture Chess's 3D realms fade in over the CSS level, which then steps aside
  * except for the embers, the battle shade and the vignette */
+/* the arena still (see ui/arena.js): covers the drawn level once it has loaded */
+#arena .ar-poster { inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 0.6s ease; }
+#arena.postered .ar-poster { opacity: 1; }
 #arena canvas.ar-3d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.2s ease; }
 #arena.three canvas.ar-3d { opacity: 1; }
 /* the CSS level stays up under the canvas until its fade-in ends, so the hand-over never dips to black */
-#arena.three :is(.ar-sky, .ar-stars, .ar-aurora, .ar-glow, .ar-far, .ar-stage, .ar-fog, .ar-near, .ar-brazier) { visibility: hidden; animation: none; transition: visibility 0s 1.3s; }
+#arena.three :is(.ar-sky, .ar-stars, .ar-aurora, .ar-glow, .ar-far, .ar-stage, .ar-fog, .ar-near, .ar-brazier, .ar-poster) { visibility: hidden; animation: none; transition: visibility 0s 1.3s; }
 #arena.three .ar-vignette { background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 50%, rgba(3, 2, 6, 0.7) 100%); }
 
 /* battle: dim the level so the board reads */

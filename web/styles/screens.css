@@ -5,7 +5,7 @@
 #ui { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
 /* behind a menu page the level is a soft backdrop, not a scene to read; the title and the battle show it sharp */
 #arena { transition: filter 0.5s ease-out; }
-body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) saturate(0.9); }
+body:has(#ui > .page:not([hidden])) #arena { filter: blur(2.5px) brightness(0.86) saturate(0.95); }
 .screen { position: absolute; inset: 0; pointer-events: auto; }
 .screen.in { animation: screenIn 0.45s var(--ease-out) both; }
 .screen.out { animation: screenOut 0.18s ease-in both; pointer-events: none; }
@@ -120,7 +120,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 /* big screens: the gauntlet, puzzle and profile panels grow with the screen instead of floating small in the middle */
 @media (min-width: 1500px) and (min-height: 900px) { .page-wrap > * { zoom: 1.2; } }
 @media (min-width: 1800px) and (min-height: 1000px) { .page-wrap > * { zoom: 1.35; } }
-.page-scrim { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 30%, rgba(5, 4, 9, 0.6)), linear-gradient(180deg, rgba(5, 4, 9, 0.92), rgba(5, 4, 9, 0.76) 30%, rgba(5, 4, 9, 0.8) 70%, rgba(5, 4, 9, 0.95)); }
+.page-scrim { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 35%, rgba(5, 4, 9, 0.55)), linear-gradient(180deg, rgba(5, 4, 9, 0.85), rgba(5, 4, 9, 0.42) 26%, rgba(5, 4, 9, 0.5) 70%, rgba(5, 4, 9, 0.88)); }   /* the arena shows through behind the pages */
 .page-head { position: relative; z-index: 1; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: calc(var(--safe-t) + 16px) calc(var(--safe-r) + 28px) 12px calc(var(--safe-l) + 28px); }
 .page-title { display: grid; gap: 2px; min-width: 0; }
 .page-title h1 { margin: 0; font-size: clamp(20px, 2.6vw, 30px); letter-spacing: 0.12em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -177,6 +177,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 /* laptop heights: a smaller hero card and tighter rows, so the battlefield and bot choices clear the Enter dock */
 @media (max-height: 820px) and (min-width: 901px) {
   .cd-card { width: min(104px, 14vh); margin-top: 10px; }
+  .cd-card .ccard .sub { display: none; }   /* too narrow for "Water · Alliance": the panel below says it */
   .cd-body { gap: 6px; padding-top: 6px; }
   .cd-name { font-size: 20px; }
   .cd-power { padding: 7px 10px; }
@@ -263,7 +264,13 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 .meta-body.narrow { max-width: 620px; }
 .meta-panel .panel-body.stack, .meta-panel .stack { display: grid; gap: 14px; }
 /* the Gauntlet ladder: eight foe portraits; won ones gilded, the next one lit, the rest in shadow */
-.road { list-style: none; margin: 0; padding: 10px 8px 2px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; }
+.road { list-style: none; margin: 0; padding: 10px 8px 2px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)) minmax(0, 1.3fr); gap: 16px; align-items: end; position: relative; }
+/* the road itself: a gilt path running behind the stages, and the final foe raised, framed in gold, crowned */
+.road::before { content: ''; position: absolute; left: 3%; right: 6%; top: 44%; height: 3px; border-radius: 2px; background: linear-gradient(90deg, rgba(255, 201, 94, 0.15), rgba(255, 201, 94, 0.6) 50%, rgba(255, 201, 94, 0.9)); box-shadow: 0 0 10px rgba(255, 201, 94, 0.45); }
+.stage { z-index: 1; }
+.stage:last-child .st-face { border: 2px solid var(--gold-1); box-shadow: 0 0 0 3px rgba(255, 201, 94, 0.2), 0 0 34px rgba(255, 190, 80, 0.5), 0 16px 34px rgba(0, 0, 0, 0.6); }
+.stage:last-child .st-face::after { content: ''; position: absolute; top: 5px; left: 50%; width: 30%; aspect-ratio: 1.6; transform: translateX(-50%); z-index: 2; clip-path: polygon(0 100%, 0 25%, 25% 60%, 50% 0, 75% 60%, 100% 25%, 100% 100%); background: linear-gradient(180deg, #fff2c4, var(--gold-2)); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.7)); }
+.stage:last-child .st-n { color: var(--gold-1); letter-spacing: 0.24em; }
 .stage { position: relative; display: grid; justify-items: center; gap: 4px; text-align: center; min-width: 0; }
 .st-face { position: relative; width: 100%; aspect-ratio: 3 / 4; border-radius: 6px; overflow: hidden; display: grid; place-items: center; color: var(--dim); border: 1px solid var(--line-strong);
   background: radial-gradient(circle at 50% 35%, #2a2133, #0e0b13 75%); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5); transition: transform 0.3s var(--ease-out), box-shadow 0.3s; }
@@ -325,6 +332,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(6px) brightness(0.8) s
 @media (max-width: 760px) {
   /* all eight foes, in two rows of four */
   .road { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 10px; padding: 10px 4px 4px; }
+  .road::before { display: none; }   /* two rows: a straight path would cut through them */
   /* phone: the card and the name side by side, the tiles across the full width under them */
   .profile-hero { grid-template-columns: 84px minmax(0, 1fr); gap: 6px 14px; padding: 14px; align-items: start; }
   .ph-body { display: contents; }

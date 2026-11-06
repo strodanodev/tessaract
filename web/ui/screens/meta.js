@@ -32,7 +32,7 @@ export function gauntletScreen(app) {
         h("div", { class: "st-face" }, card?.art ? h("img", { src: card.art, alt: "", loading: "lazy", decoding: "async" }) : icon(i === g.stages ? "crown" : "foe"),
           state === "won" ? h("span", { class: "st-mark" }, icon("check")) : state === "lost" ? h("span", { class: "st-mark" }, icon("close")) : null),
         h("span", { class: "st-n", text: i === g.stages ? "Final" : `Stage ${i}` }),
-        h("span", { class: "st-name", text: run && opp ? (card?.name ?? opp.name) : "" })));
+        h("span", { class: "st-name", text: run && opp ? (card?.name ?? opp.name) : opp ? `${LEVEL[opp.level] ?? ""}` : "" })));   // before a run: how hard each step is
     }
     const panel = h("div", { class: "panel frame meta-panel" });
     const head = (t, badge) => h("div", { class: "panel-head" }, h("h2", { text: t }), badge ? h("span", { class: "badge outline", text: badge }) : null);

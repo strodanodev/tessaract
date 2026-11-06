@@ -32,7 +32,7 @@ export function createAim(root) {
     const d = `M${sx.toFixed(1)},${sy.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${ex.toFixed(1)},${ey.toFixed(1)}`;
     line.setAttribute("d", d); glow.setAttribute("d", d);
     // the head points along the curve's last tangent
-    const a = Math.atan2(ey - cy, ex - cx), k = 18;
+    const a = Math.atan2(ey - cy, ex - cx), k = 30;
     const p = (r, t) => `${(ex + Math.cos(a + t) * r).toFixed(1)},${(ey + Math.sin(a + t) * r).toFixed(1)}`;
     head.setAttribute("d", `M${p(4, 0)} L${p(k, Math.PI * 0.84)} L${p(k * 0.45, Math.PI)} L${p(k, -Math.PI * 0.84)} Z`);
     ring.setAttribute("cx", ex.toFixed(1)); ring.setAttribute("cy", ey.toFixed(1));
